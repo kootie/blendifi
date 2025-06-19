@@ -6,6 +6,16 @@ import { ArrowDownUp } from "lucide-react";
 import CryptoSelector from "./CryptoSelector";
 import { callContractMethod } from "@/lib/stellar";
 
+// Map crypto codes to their Stellar addresses or contract addresses
+const ASSET_ADDRESSES: Record<string, string> = {
+  XLM: "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
+  BLND: "CB22KRA3YZVCNCQI64JQ5WE7UY2VAV7WFLK6A2JN3HEX56T2EDAFO7QF",
+  USDC: "CAQCFVLOBK5GIULPNZRGATJJMIZL5BSP7X5YJVMGCPTUEPFM4AVSRCJU",
+  wETH: "CAZAQB3D7KSLSNOSQKYD2V4JP5V2Y3B4RDJZRLBFCCIXDCTE3WHSY3UE",
+  wBTC: "CAP5AMC2OHNVREO66DFIN6DHJMPOBAJ2KCDDIMFBR7WWJH5RZBFM3UEI",
+  // Add other tokens as needed
+};
+
 const CryptoExchange = () => {
   const [fromCrypto, setFromCrypto] = useState("USDC");
   const [toCrypto, setToCrypto] = useState("USDT");
@@ -16,13 +26,16 @@ const CryptoExchange = () => {
     setLoading(true);
     try {
       const result = await callContractMethod("swap_tokens", {
-        fromCrypto,
-        toCrypto,
+        fromCrypto: ASSET_ADDRESSES[fromCrypto] || fromCrypto,
+        toCrypto: ASSET_ADDRESSES[toCrypto] || toCrypto,
         amount: Number(amount),
       });
       alert("Swap successful: " + JSON.stringify(result));
-    } catch (e: any) {
-      alert("Swap failed: " + e.message);
+    } catch (e: unknown) {
+      const message = typeof e === 'object' && e && 'message' in e && typeof (e as { message?: unknown }).message === 'string'
+        ? (e as { message: string }).message
+        : String(e);
+      alert("Swap failed: " + message);
     } finally {
       setLoading(false);
     }
@@ -36,8 +49,11 @@ const CryptoExchange = () => {
         amount: Number(amount),
       });
       alert("Staking successful: " + JSON.stringify(result));
-    } catch (e: any) {
-      alert("Staking failed: " + e.message);
+    } catch (e: unknown) {
+      const message = typeof e === 'object' && e && 'message' in e && typeof (e as { message?: unknown }).message === 'string'
+        ? (e as { message: string }).message
+        : String(e);
+      alert("Staking failed: " + message);
     } finally {
       setLoading(false);
     }
@@ -51,8 +67,11 @@ const CryptoExchange = () => {
         amount: Number(amount),
       });
       alert("Loan request successful: " + JSON.stringify(result));
-    } catch (e: any) {
-      alert("Loan request failed: " + e.message);
+    } catch (e: unknown) {
+      const message = typeof e === 'object' && e && 'message' in e && typeof (e as { message?: unknown }).message === 'string'
+        ? (e as { message: string }).message
+        : String(e);
+      alert("Loan request failed: " + message);
     } finally {
       setLoading(false);
     }
