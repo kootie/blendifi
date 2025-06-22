@@ -10,11 +10,11 @@ import UserPortfolio from "./UserPortfolio";
 import { 
   callContractMethod, 
   connectWallet, 
-  walletIsConnected, 
   getUserPosition, 
   calculateHealthFactor,
   getAssetPrice,
-  SUPPORTED_ASSETS 
+  SUPPORTED_ASSETS,
+  WalletType
 } from "@/lib/stellar";
 
 const CryptoExchange = () => {
@@ -27,27 +27,13 @@ const CryptoExchange = () => {
   const [healthFactor, setHealthFactor] = useState<number | null>(null);
   const [prices, setPrices] = useState<Record<string, number>>({});
   const { toast } = useToast();
-
-  // Connect wallet on component mount
-  useEffect(() => {
-    const initWallet = async () => {
-      const isConnected = await walletIsConnected();
-      if (isConnected) {
-        const address = await connectWallet();
-        setWalletAddress(address);
-        if (address) {
-          loadUserData(address);
-        }
-      }
-    };
-    initWallet();
-  }, []);
+  const [selectedWallet, setSelectedWallet] = useState<WalletType | null>(null);
 
   // Load user position and health factor
   const loadUserData = async (address: string) => {
     try {
       const position = await getUserPosition(address);
-      setUserPosition(position);
+      setUserPosition((typeof position === 'object' && position !== null) ? (position as unknown as Record<string, unknown>) : null);
       
       const health = await calculateHealthFactor(address);
       setHealthFactor(health);
@@ -67,8 +53,16 @@ const CryptoExchange = () => {
   };
 
   const handleConnectWallet = async () => {
+    if (!selectedWallet) {
+      toast({
+        title: "Select Wallet",
+        description: "Please select a wallet (Freighter or Albedo) before connecting.",
+        variant: "destructive",
+      });
+      return;
+    }
     try {
-      const address = await connectWallet();
+      const address = await connectWallet(selectedWallet);
       if (address) {
         setWalletAddress(address);
         await loadUserData(address);
@@ -79,7 +73,7 @@ const CryptoExchange = () => {
       } else {
         toast({
           title: "Connection Failed",
-          description: "Please install Freighter wallet and try again",
+          description: `Please install and unlock your selected wallet (${selectedWallet}) and try again`,
           variant: "destructive",
         });
       }
@@ -101,7 +95,14 @@ const CryptoExchange = () => {
       });
       return;
     }
-
+    if (!selectedWallet) {
+      toast({
+        title: "Select Wallet",
+        description: "Please select a wallet (Freighter or Albedo) before signing.",
+        variant: "destructive",
+      });
+      return;
+    }
     if (!amount || parseFloat(amount) <= 0) {
       toast({
         title: "Invalid Amount",
@@ -110,22 +111,19 @@ const CryptoExchange = () => {
       });
       return;
     }
-
     setLoading(true);
     try {
       const result = await callContractMethod("swap_tokens", {
         fromCrypto,
         toCrypto,
         amount: parseFloat(amount),
-        minAmountOut: 1, // You might want to calculate this based on slippage
+        minAmountOut: 1,
+        walletType: selectedWallet,
       });
-      
       toast({
         title: "Swap Successful",
         description: `Swapped ${amount} ${fromCrypto} for ${toCrypto}`,
       });
-      
-      // Reload user data
       await loadUserData(walletAddress);
       setAmount("");
     } catch (error: unknown) {
