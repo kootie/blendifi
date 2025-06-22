@@ -17,16 +17,6 @@ import {
   SUPPORTED_ASSETS 
 } from "@/lib/stellar";
 
-// Map crypto codes to their Stellar addresses or contract addresses
-const ASSET_ADDRESSES: Record<string, string> = {
-  XLM: "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
-  BLND: "CB22KRA3YZVCNCQI64JQ5WE7UY2VAV7WFLK6A2JN3HEX56T2EDAFO7QF",
-  USDC: "CAQCFVLOBK5GIULPNZRGATJJMIZL5BSP7X5YJVMGCPTUEPFM4AVSRCJU",
-  wETH: "CAZAQB3D7KSLSNOSQKYD2V4JP5V2Y3B4RDJZRLBFCCIXDCTE3WHSY3UE",
-  wBTC: "CAP5AMC2OHNVREO66DFIN6DHJMPOBAJ2KCDDIMFBR7WWJH5RZBFM3UEI",
-  // Add other tokens as needed
-};
-
 const CryptoExchange = () => {
   const [fromCrypto, setFromCrypto] = useState("USDC");
   const [toCrypto, setToCrypto] = useState("USDT");

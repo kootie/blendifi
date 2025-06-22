@@ -1,5 +1,5 @@
-// import { isConnected as freighterIsConnected, getAddress, requestAccess, signTransaction } from '@stellar/freighter-api';
-import { Networks, TransactionBuilder, BASE_FEE, Keypair, Operation, Account, nativeToScVal, xdr, scValToNative } from '@stellar/stellar-sdk';
+import { isConnected as freighterIsConnected, getAddress, requestAccess, signTransaction } from '@stellar/freighter-api';
+import { Networks, TransactionBuilder, BASE_FEE, Keypair, Operation, Account, nativeToScVal, xdr, scValToNative, SorobanDataBuilder } from '@stellar/stellar-sdk';
 import { Server } from 'soroban-client';
 import { CONFIG } from './config';
 
@@ -108,14 +108,28 @@ export const SUPPORTED_ASSETS = {
 // The following are placeholders and should be replaced with actual wallet integration code.
 
 /**
- * Connect to any Stellar wallet. Replace this with your preferred wallet integration.
- * Should return the user's public key (G...) or null if not connected.
+ * Connect to Freighter wallet and return the user's public key.
  */
 export async function connectWallet(): Promise<string | null> {
-  // TODO: Implement wallet connection logic for your preferred Stellar wallet
-  // Example: Use window.walletAPI, Albedo, xBull, Rabet, etc.
-  alert('Please implement wallet connection logic for your preferred Stellar wallet.');
-  return null;
+  try {
+    const isInstalled = await freighterIsConnected();
+    if (!isInstalled) {
+      alert('Freighter wallet not found. Please install the Freighter extension.');
+      return null;
+    }
+    const addressRes = await getAddress();
+    if (addressRes && addressRes.address) {
+      return addressRes.address;
+    }
+    const accessRes = await requestAccess();
+    if (accessRes && accessRes.address) {
+      return accessRes.address;
+    }
+    return null;
+  } catch (e) {
+    console.error('Freighter connection error:', e);
+    return null;
+  }
 }
 
 /**
@@ -136,22 +150,29 @@ export async function fetchAccount(pubKey: string) {
 // Get user position from contract
 export async function getUserPosition(userAddress: string) {
   try {
-    const result = await sorobanServer.simulateTransaction({
-      resourceConfig: { instructionLeeway: 1000000 },
-      operations: [{
-        invokeContractFunction: {
-          contract: CONTRACT_ID,
-          function: "get_user_position",
-          args: [nativeToScVal(userAddress, { type: 'address' })]
-        }
-      }]
-    });
-    
-    if (result.error) {
+    const tx = new TransactionBuilder(new Account(userAddress, "0"), {
+      fee: BASE_FEE,
+      networkPassphrase: Networks.TESTNET,
+    })
+      .addOperation(Operation.invokeHostFunction({
+        function: xdr.HostFunction.hostFunctionTypeInvokeContract(),
+        parameters: [
+          nativeToScVal(CONTRACT_ID, { type: 'address' }),
+          nativeToScVal("get_user_position", { type: 'symbol' }),
+          nativeToScVal(userAddress, { type: 'address' })
+        ],
+        auth: []
+      }))
+      .setTimeout(60)
+      .build();
+    const result = await sorobanServer.simulateTransaction(tx);
+    if ('error' in result) {
       throw new Error(`Simulation failed: ${result.error}`);
     }
-    
-    return result.result?.retval;
+    if ('result' in result && result.result && 'retval' in result.result) {
+      return result.result.retval;
+    }
+    return null;
   } catch (e) {
     console.error('Failed to get user position:', e);
     return null;
@@ -162,33 +183,37 @@ export async function getUserPosition(userAddress: string) {
 export async function calculateHealthFactor(userAddress: string, additionalBorrow?: { asset: string, amount: number }) {
   try {
     const args = [nativeToScVal(userAddress, { type: 'address' })];
-    
     if (additionalBorrow) {
       const assetAddress = SUPPORTED_ASSETS[additionalBorrow.asset as keyof typeof SUPPORTED_ASSETS]?.address;
       if (!assetAddress) throw new Error('Invalid asset');
-      
       args.push(nativeToScVal(assetAddress, { type: 'address' }));
       args.push(nativeToScVal(additionalBorrow.amount, { type: 'u128' }));
     } else {
       args.push(nativeToScVal(null, { type: 'void' }));
     }
-    
-    const result = await sorobanServer.simulateTransaction({
-      resourceConfig: { instructionLeeway: 1000000 },
-      operations: [{
-        invokeContractFunction: {
-          contract: CONTRACT_ID,
-          function: "calculate_health_factor",
-          args: args
-        }
-      }]
-    });
-    
-    if (result.error) {
+    const tx = new TransactionBuilder(new Account(userAddress, "0"), {
+      fee: BASE_FEE,
+      networkPassphrase: Networks.TESTNET,
+    })
+      .addOperation(Operation.invokeHostFunction({
+        function: xdr.HostFunction.hostFunctionTypeInvokeContract(),
+        parameters: [
+          nativeToScVal(CONTRACT_ID, { type: 'address' }),
+          nativeToScVal("calculate_health_factor", { type: 'symbol' }),
+          ...args
+        ],
+        auth: []
+      }))
+      .setTimeout(60)
+      .build();
+    const result = await sorobanServer.simulateTransaction(tx);
+    if ('error' in result) {
       throw new Error(`Simulation failed: ${result.error}`);
     }
-    
-    return scValToNative(result.result?.retval);
+    if ('result' in result && result.result && 'retval' in result.result) {
+      return scValToNative(result.result.retval);
+    }
+    return null;
   } catch (e) {
     console.error('Failed to calculate health factor:', e);
     return null;
@@ -198,22 +223,29 @@ export async function calculateHealthFactor(userAddress: string, additionalBorro
 // Get asset price
 export async function getAssetPrice(assetAddress: string) {
   try {
-    const result = await sorobanServer.simulateTransaction({
-      resourceConfig: { instructionLeeway: 1000000 },
-      operations: [{
-        invokeContractFunction: {
-          contract: CONTRACT_ID,
-          function: "get_asset_price",
-          args: [nativeToScVal(assetAddress, { type: 'address' })]
-        }
-      }]
-    });
-    
-    if (result.error) {
+    const tx = new TransactionBuilder(new Account(assetAddress, "0"), {
+      fee: BASE_FEE,
+      networkPassphrase: Networks.TESTNET,
+    })
+      .addOperation(Operation.invokeHostFunction({
+        function: xdr.HostFunction.hostFunctionTypeInvokeContract(),
+        parameters: [
+          nativeToScVal(CONTRACT_ID, { type: 'address' }),
+          nativeToScVal("get_asset_price", { type: 'symbol' }),
+          nativeToScVal(assetAddress, { type: 'address' })
+        ],
+        auth: []
+      }))
+      .setTimeout(60)
+      .build();
+    const result = await sorobanServer.simulateTransaction(tx);
+    if ('error' in result) {
       throw new Error(`Simulation failed: ${result.error}`);
     }
-    
-    return scValToNative(result.result?.retval);
+    if ('result' in result && result.result && 'retval' in result.result) {
+      return scValToNative(result.result.retval);
+    }
+    return null;
   } catch (e) {
     console.error('Failed to get asset price:', e);
     return null;
@@ -347,18 +379,21 @@ export async function callContractMethod(
   console.log('[Soroban] Raw contractArgs:', contractArgs);
 
   try {
-    // Prepare contract call
+    // Build the operation
     const accountData = await fetchAccount(pubKey);
     const account = new Account(accountData.account_id, accountData.sequence);
-    
     const tx = new TransactionBuilder(account, {
       fee: BASE_FEE,
       networkPassphrase: Networks.TESTNET,
     })
-      .addOperation(Operation.invokeContractFunction({
-        contract: CONTRACT_ID,
-        function: method,
-        args: contractArgs,
+      .addOperation(Operation.invokeHostFunction({
+        function: xdr.HostFunction.hostFunctionTypeInvokeContract(),
+        parameters: [
+          nativeToScVal(CONTRACT_ID, { type: 'address' }),
+          nativeToScVal(method, { type: 'symbol' }),
+          ...contractArgs
+        ],
+        auth: []
       }))
       .setTimeout(60)
       .build();

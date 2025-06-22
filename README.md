@@ -1,6 +1,6 @@
 # Stellar DeFi Hub
 
-A comprehensive DeFi application built on Stellar that integrates swap functionality, lending/borrowing through Blend pools, and staking rewards. The frontend is built with React, TypeScript, and integrates with the Stellar blockchain using Freighter wallet.
+A comprehensive DeFi application built on Stellar that integrates swap functionality, lending/borrowing through Blend pools, and staking rewards. The frontend is built with React, TypeScript, and integrates with the Stellar blockchain using Freighter wallet and Soroban smart contracts.
 
 ## Features
 
@@ -8,8 +8,12 @@ A comprehensive DeFi application built on Stellar that integrates swap functiona
 - **Lending & Borrowing**: Supply assets to Blend pools and borrow against collateral
 - **Staking Rewards**: Stake bTokens to earn protocol fees and rewards
 - **Health Factor Monitoring**: Real-time monitoring of borrowing health factors
-- **Multi-Asset Support**: Support for 10 major cryptocurrencies
+- **Multi-Asset Support**: Support for 11 major cryptocurrencies including BLND (Blend token)
 - **Portfolio Management**: Comprehensive portfolio tracking and analytics
+- **Freighter Wallet Integration**: Secure wallet connection and transaction signing
+- **Soroban Contract Calls**: All DeFi actions interact directly with the deployed Soroban contract
+- **Real-Time Price Feeds**: Asset prices fetched from DIA oracle, DEX, and fallback sources
+- **Improved Error Handling**: User-friendly error messages for wallet, contract, and network issues
 
 ## Supported Assets
 
@@ -20,18 +24,19 @@ The application supports the following assets on Stellar testnet:
 - **XLM** (Stellar) - 70% collateral factor
 - **BTC** (Bitcoin) - 75% collateral factor
 - **ETH** (Ethereum) - 75% collateral factor
-- **DIA** (DIA Token) - 60% collateral factor
-- **LINK** (Chainlink) - 65% collateral factor
-- **UNI** (Uniswap) - 60% collateral factor
-- **AAVE** (AAVE) - 65% collateral factor
-- **MATIC** (Polygon) - 60% collateral factor
+- **AQUA** (AQUA Token) - 60% collateral factor
+- **VELO** (VELO Token) - 60% collateral factor
+- **SHX** (Stronghold Token) - 65% collateral factor
+- **WXT** (Wirex Token) - 60% collateral factor
+- **RIO** (Realio Token) - 60% collateral factor
+- **BLND** (Blend Token) - 65% collateral factor
 
 ## Prerequisites
 
 - Node.js 18+ and npm/yarn
 - Freighter wallet extension installed
 - Stellar testnet account with test XLM
-- Deployed smart contract on Stellar testnet
+- Deployed Soroban smart contract on Stellar testnet
 
 ## Installation
 
@@ -55,6 +60,7 @@ npm install
 ```bash
 npm run dev
 ```
+   - If port 8080 is in use, the app will start on the next available port (e.g., 8081).
 
 ## Smart Contract Setup
 
@@ -115,7 +121,7 @@ The application provides comprehensive portfolio management:
 - **Health Factor Monitoring**: Real-time calculation and display of borrowing health
 - **Asset Positions**: Detailed view of supplied and borrowed assets
 - **Portfolio Value**: Total collateral, borrowed, and net position values
-- **Price Information**: Real-time asset prices from DIA oracle
+- **Price Information**: Real-time asset prices from DIA oracle, DEX, and fallback sources
 
 ## Technical Architecture
 
@@ -128,9 +134,9 @@ The application provides comprehensive portfolio management:
 - **React Query** for data fetching
 
 ### Blockchain Integration
-- **@stellar/stellar-sdk** for Stellar operations
+- **@stellar/stellar-sdk** (latest) for Stellar operations
 - **@stellar/freighter-api** for wallet integration
-- **soroban-client** for smart contract interactions
+- **soroban-client** (latest) for smart contract interactions
 
 ### Key Components
 - `CryptoExchange`: Main DeFi interface with tabs for different operations
