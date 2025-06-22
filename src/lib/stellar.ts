@@ -235,6 +235,7 @@ export async function callContractMethod(
 
   // Build contract call arguments
   let contractArgs: xdr.ScVal[] = [];
+  let debugArgs: any = {};
   
   switch (method) {
     case 'swap_tokens': {
@@ -250,6 +251,14 @@ export async function callContractMethod(
         nativeToScVal(params.minAmountOut || 1, { type: 'u128' }),
         nativeToScVal(Math.floor(Date.now() / 1000) + 600, { type: 'u64' }) // 10 min deadline
       ];
+      debugArgs = {
+        user: pubKey,
+        token_a: tokenA,
+        token_b: tokenB,
+        amount_in: params.amount,
+        min_amount_out: params.minAmountOut || 1,
+        deadline: Math.floor(Date.now() / 1000) + 600
+      };
       break;
     }
       
@@ -262,6 +271,11 @@ export async function callContractMethod(
         nativeToScVal(supplyAsset, { type: 'address' }),
         nativeToScVal(params.amount, { type: 'u128' })
       ];
+      debugArgs = {
+        user: pubKey,
+        asset: supplyAsset,
+        amount: params.amount
+      };
       break;
     }
       
@@ -274,6 +288,11 @@ export async function callContractMethod(
         nativeToScVal(borrowAsset, { type: 'address' }),
         nativeToScVal(params.amount, { type: 'u128' })
       ];
+      debugArgs = {
+        user: pubKey,
+        asset: borrowAsset,
+        amount: params.amount
+      };
       break;
     }
       
@@ -286,6 +305,11 @@ export async function callContractMethod(
         nativeToScVal(btoken, { type: 'address' }),
         nativeToScVal(params.amount, { type: 'u128' })
       ];
+      debugArgs = {
+        user: pubKey,
+        btoken: btoken,
+        amount: params.amount
+      };
       break;
     }
       
@@ -298,12 +322,22 @@ export async function callContractMethod(
         nativeToScVal(unstakeBtoken, { type: 'address' }),
         nativeToScVal(params.amount, { type: 'u128' })
       ];
+      debugArgs = {
+        user: pubKey,
+        btoken: unstakeBtoken,
+        amount: params.amount
+      };
       break;
     }
       
     default:
       throw new Error('Unsupported contract method');
   }
+
+  // Debug log the arguments
+  console.log(`[Soroban] Calling method: ${method}`);
+  console.log('[Soroban] Arguments:', debugArgs);
+  console.log('[Soroban] Raw contractArgs:', contractArgs);
 
   try {
     // Prepare contract call
@@ -334,6 +368,8 @@ export async function callContractMethod(
     // Send the transaction to Soroban RPC
     const sendResponse = await sorobanServer.sendTransaction(signedTx);
     
+    console.log('[Soroban] sendTransaction response:', sendResponse);
+
     if (sendResponse.errorResultXdr) {
       throw new Error(`Transaction failed: ${sendResponse.errorResultXdr}`);
     }
@@ -341,6 +377,7 @@ export async function callContractMethod(
     if (sendResponse.status === 'PENDING') {
       // Wait for transaction to be confirmed
       const getResponse = await sorobanServer.getTransaction(sendResponse.hash);
+      console.log('[Soroban] getTransaction response:', getResponse);
       if (getResponse.status === 'SUCCESS') {
         return { status: 'SUCCESS', hash: sendResponse.hash, result: getResponse.resultMetaXdr };
       } else {
@@ -351,7 +388,7 @@ export async function callContractMethod(
     return { status: sendResponse.status, hash: sendResponse.hash };
     
   } catch (e) {
-    console.error(`Contract call failed for ${method}:`, e);
+    console.error(`[Soroban] Contract call failed for ${method}:`, e);
     throw e;
   }
 }

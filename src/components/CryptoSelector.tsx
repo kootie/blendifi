@@ -36,7 +36,7 @@ const CryptoSelector = ({ selected, onSelect, label }: CryptoSelectorProps) => {
             <ChevronDown className="ml-2 h-4 w-4" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent className="w-[200px]">
+        <DropdownMenuContent className="w-[200px] max-h-60 overflow-y-auto">
           {cryptos.map((crypto) => (
             <DropdownMenuItem
               key={crypto.code}
