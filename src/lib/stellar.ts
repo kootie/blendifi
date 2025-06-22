@@ -1,12 +1,13 @@
-import { isConnected as freighterIsConnected, getAddress, requestAccess, signTransaction } from '@stellar/freighter-api';
-import { Networks, TransactionBuilder, BASE_FEE, Keypair, Operation, Account, nativeToScVal, xdr, scValToNative, SorobanDataBuilder } from '@stellar/stellar-sdk';
-import { Server } from 'soroban-client';
+import { isConnected as freighterIsConnected, getAddress, requestAccess, signTransaction as freighterSignTransaction } from '@stellar/freighter-api';
+import albedo from '@albedo-link/intent';
+import { Networks, TransactionBuilder, BASE_FEE, Keypair, Operation, Account, nativeToScVal, xdr, scValToNative, SorobanDataBuilder, Transaction } from '@stellar/stellar-sdk';
+import { Server as SorobanServer } from 'soroban-client';
 import { CONFIG } from './config';
 
 // Connect to Stellar testnet
 export const HORIZON_URL = CONFIG.NETWORK.HORIZON_URL;
 export const SOROBAN_RPC_URL = CONFIG.NETWORK.SOROBAN_RPC_URL;
-export const sorobanServer = new Server(SOROBAN_RPC_URL);
+export const sorobanServer = new SorobanServer(SOROBAN_RPC_URL);
 
 // Contract ID from config
 export const CONTRACT_ID = CONFIG.CONTRACT_ID;
@@ -103,41 +104,81 @@ export const SUPPORTED_ASSETS = {
   }
 };
 
-// Generic wallet connection logic
-// You should implement your own wallet connection logic here for any Stellar wallet (e.g., Albedo, xBull, Rabet, Freighter, etc.)
-// The following are placeholders and should be replaced with actual wallet integration code.
-
-/**
- * Connect to Freighter wallet and return the user's public key.
- */
-export async function connectWallet(): Promise<string | null> {
-  try {
-    const isInstalled = await freighterIsConnected();
-    if (!isInstalled) {
-      alert('Freighter wallet not found. Please install the Freighter extension.');
-      return null;
-    }
-    const addressRes = await getAddress();
-    if (addressRes && addressRes.address) {
-      return addressRes.address;
-    }
-    const accessRes = await requestAccess();
-    if (accessRes && accessRes.address) {
-      return accessRes.address;
-    }
-    return null;
-  } catch (e) {
-    console.error('Freighter connection error:', e);
-    return null;
-  }
+export enum WalletType {
+  Freighter = 'freighter',
+  Albedo = 'albedo',
 }
 
-/**
- * Check if a wallet is connected. Replace this with your preferred wallet integration.
- */
-export async function walletIsConnected(): Promise<boolean> {
-  // TODO: Implement wallet connection check for your preferred Stellar wallet
-  return false;
+// Connect to wallet and return the user's public key
+export async function connectWallet(wallet: WalletType): Promise<string | null> {
+  if (wallet === WalletType.Freighter) {
+    try {
+      const isInstalled = await freighterIsConnected();
+      if (!isInstalled) {
+        alert('Freighter wallet not found. Please install the Freighter extension.');
+        return null;
+      }
+      const addressRes = await getAddress();
+      if (addressRes && addressRes.address) {
+        return addressRes.address;
+      }
+      const accessRes = await requestAccess();
+      if (accessRes && accessRes.address) {
+        return accessRes.address;
+      }
+      return null;
+    } catch (e: unknown) {
+      console.error('Freighter connection error:', e);
+      return null;
+    }
+  } else if (wallet === WalletType.Albedo) {
+    try {
+      const result = await albedo.publicKey();
+      if (result && result.pubkey) {
+        return result.pubkey;
+      }
+      return null;
+    } catch (e: unknown) {
+      console.error('Albedo connection error:', e);
+      return null;
+    }
+  }
+  return null;
+}
+
+// Sign and submit transaction using the selected wallet
+export async function signAndSubmitTransaction(wallet: WalletType, tx: Transaction) {
+  if (wallet === WalletType.Freighter) {
+    try {
+      const signed = await freighterSignTransaction(tx.toXDR(), {
+        networkPassphrase: Networks.TESTNET,
+      });
+      if (!signed || !signed.signedTxXdr) throw new Error('Signing failed');
+      const signedTx = TransactionBuilder.fromXDR(signed.signedTxXdr, Networks.TESTNET);
+      const server = new SorobanServer(CONFIG.NETWORK.SOROBAN_RPC_URL);
+      const sendResponse = await server.sendTransaction(signedTx);
+      return sendResponse;
+    } catch (e: unknown) {
+      console.error('Freighter signing/submission error:', e);
+      throw e;
+    }
+  } else if (wallet === WalletType.Albedo) {
+    try {
+      const result = await albedo.tx({
+        xdr: tx.toXDR(),
+        network: 'testnet',
+      });
+      if (!result.signed_envelope_xdr) throw new Error('Albedo signing failed');
+      const signedTx = TransactionBuilder.fromXDR(result.signed_envelope_xdr, Networks.TESTNET);
+      const server = new SorobanServer(CONFIG.NETWORK.SOROBAN_RPC_URL);
+      const sendResponse = await server.sendTransaction(signedTx);
+      return sendResponse;
+    } catch (e: unknown) {
+      console.error('Albedo signing/submission error:', e);
+      throw e;
+    }
+  }
+  throw new Error('Unsupported wallet type');
 }
 
 // Helper to fetch account data from Horizon
@@ -274,7 +315,7 @@ export async function callContractMethod(
 
   // Build contract call arguments
   let contractArgs: xdr.ScVal[] = [];
-  let debugArgs: any = {};
+  let debugArgs: unknown = {};
   
   switch (method) {
     case 'swap_tokens': {
@@ -399,35 +440,26 @@ export async function callContractMethod(
       .build();
 
     // Ask Freighter to sign the transaction
-    const signed = await signTransaction(tx.toXDR(), {
-      networkPassphrase: Networks.TESTNET,
-    });
+    const signed = await signAndSubmitTransaction(WalletType.Freighter, tx);
     
-    if (!signed || !signed.signedTxXdr) throw new Error('Signing failed');
-    
-    const signedTx = TransactionBuilder.fromXDR(signed.signedTxXdr, Networks.TESTNET);
+    console.log('[Soroban] sendTransaction response:', signed);
 
-    // Send the transaction to Soroban RPC
-    const sendResponse = await sorobanServer.sendTransaction(signedTx);
-    
-    console.log('[Soroban] sendTransaction response:', sendResponse);
-
-    if (sendResponse.errorResultXdr) {
-      throw new Error(`Transaction failed: ${sendResponse.errorResultXdr}`);
+    if (signed.errorResultXdr) {
+      throw new Error(`Transaction failed: ${signed.errorResultXdr}`);
     }
     
-    if (sendResponse.status === 'PENDING') {
+    if (signed.status === 'PENDING') {
       // Wait for transaction to be confirmed
-      const getResponse = await sorobanServer.getTransaction(sendResponse.hash);
+      const getResponse = await sorobanServer.getTransaction(signed.hash);
       console.log('[Soroban] getTransaction response:', getResponse);
       if (getResponse.status === 'SUCCESS') {
-        return { status: 'SUCCESS', hash: sendResponse.hash, result: getResponse.resultMetaXdr };
+        return { status: 'SUCCESS', hash: signed.hash, result: getResponse.resultMetaXdr };
       } else {
         throw new Error(`Transaction failed with status: ${getResponse.status}`);
       }
     }
     
-    return { status: sendResponse.status, hash: sendResponse.hash };
+    return { status: signed.status, hash: signed.hash };
     
   } catch (e) {
     console.error(`[Soroban] Contract call failed for ${method}:`, e);

@@ -11,6 +11,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@albedo-link/intent": "^0.13.0",
     "@hookform/resolvers": "^3.9.0",
     "@radix-ui/react-accordion": "^1.2.0",
     "@radix-ui/react-alert-dialog": "^1.1.1",
@@ -59,6 +60,7 @@
     "recharts": "^2.12.7",
     "sonner": "^1.5.0",
     "soroban-client": "^1.0.1",
+    "stellar-base": "^10.0.0",
     "tailwind-merge": "^2.5.2",
     "tailwindcss-animate": "^1.0.7",
     "vaul": "^0.9.3",
