@@ -1,4 +1,4 @@
-import { isConnected as freighterIsConnected, getAddress, requestAccess, signTransaction } from '@stellar/freighter-api';
+// import { isConnected as freighterIsConnected, getAddress, requestAccess, signTransaction } from '@stellar/freighter-api';
 import { Networks, TransactionBuilder, BASE_FEE, Keypair, Operation, Account, nativeToScVal, xdr, scValToNative } from '@stellar/stellar-sdk';
 import { Server } from 'soroban-client';
 import { CONFIG } from './config';
@@ -94,7 +94,7 @@ export const SUPPORTED_ASSETS = {
     dia_symbol: "RIO"
   },
   BLND: {
-    address: "GXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+    address: "GDJEHTBE6ZHUXSWFI642DCGLUOECLHPF3KSXHPXTSTJ7E3JF6MQ5EZYY",
     symbol: "BLND",
     decimals: 7,
     collateral_factor: 6500,
@@ -103,28 +103,27 @@ export const SUPPORTED_ASSETS = {
   }
 };
 
-// Connect wallet (Freighter)
+// Generic wallet connection logic
+// You should implement your own wallet connection logic here for any Stellar wallet (e.g., Albedo, xBull, Rabet, Freighter, etc.)
+// The following are placeholders and should be replaced with actual wallet integration code.
+
+/**
+ * Connect to any Stellar wallet. Replace this with your preferred wallet integration.
+ * Should return the user's public key (G...) or null if not connected.
+ */
 export async function connectWallet(): Promise<string | null> {
-  try {
-    // Prefer requestAccess for user prompt, fallback to getAddress
-    const res = await requestAccess();
-    if (res && res.address) return res.address;
-    const addrRes = await getAddress();
-    return addrRes && addrRes.address ? addrRes.address : null;
-  } catch (e) {
-    console.error('Failed to connect wallet:', e);
-    return null;
-  }
+  // TODO: Implement wallet connection logic for your preferred Stellar wallet
+  // Example: Use window.walletAPI, Albedo, xBull, Rabet, etc.
+  alert('Please implement wallet connection logic for your preferred Stellar wallet.');
+  return null;
 }
 
-// Check if wallet is connected
+/**
+ * Check if a wallet is connected. Replace this with your preferred wallet integration.
+ */
 export async function walletIsConnected(): Promise<boolean> {
-  try {
-    const res = await freighterIsConnected();
-    return !!res.isConnected;
-  } catch (e) {
-    return false;
-  }
+  // TODO: Implement wallet connection check for your preferred Stellar wallet
+  return false;
 }
 
 // Helper to fetch account data from Horizon

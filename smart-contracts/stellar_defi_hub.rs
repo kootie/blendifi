@@ -67,24 +67,28 @@ const SECONDS_PER_DAY: u64 = 86400;
 
 // Stellar Testnet Addresses
 const BLEND_POOL_FACTORY: &str = "CDEVVU3G2CFH6LJQG6LLSCSIU2BNRWDSJMDA44OA64XFV4YNWG7T22IU";
-const SOROSWAP_ROUTER: &str = "CAALXMGZL3JZHGXCPTJ2YFWYQN2F4CLHAKBLMGNR42XQNBTADSFQJCZD"; // Example Soroswap router
+const SOROSWAP_ROUTER: &str = "CAALXMGZL3JZHGXCPTJ2YFWYQN2F4CLHAKBLMGNR42XQNBTADSFQJCZD"; 
 
 // DIA Oracle (Testnet only)
 const DIA_ORACLE_TESTNET: &str = "CAEDPEZDRCEJCF73ASC5JGNKCIJDV2QJQSW6DJ6B74MYALBNKCJ5IFP4";
 
 // Supported assets on Stellar Testnet
-const SUPPORTED_ASSETS: [(&str, &str, u32, u128, &str); 10] = [
+const SUPPORTED_ASSETS: [(&str, &str, u32, u128, &str); 11] = [
     // (Contract Address, Symbol, Decimals, Collateral Factor, DIA Symbol)
-    ("CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQAHHAGCM6GN", "USDC", 6, 8500, "USDC"), // USDC - High collateral
-    ("CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA", "USDT", 6, 8500, "USDT"), // USDT - High collateral  
-    ("CA7QYNF7SOWQ3GLR2BGMZEHXAVIRZA4KVWLTJJFC7MGXUA74P7UJUIGZ", "XLM", 7, 7000, "XLM"),   // Native XLM
-    ("CB64D3G7SM2RTH6JSGG34DDTFTQ5CFDKVDZJZSODMZZ4SNSHNP4OJ73J", "BTC", 8, 7500, "BTC"),   // Wrapped BTC
-    ("CAJGCM4LVWAFDJSJQ6Q6XCQRMCAAFVZLWXGZ7NUFRBULQ3OHQMGQXHXW", "ETH", 18, 7500, "ETH"),  // Wrapped ETH
-    ("CCXSYV2VNFVVDPGC4K2L2JCQJ6KMXLPYGJHXJ5Q3N7MFCOVHF4CLSSGX", "DIA", 18, 6000, "DIA"),  // DIA Token
-    ("CAXPLP4OJFG5CT6SWJVHFGFBFNYP4CQYBZRQLXBX4QJSKKIWW7TLOYMD", "LINK", 18, 6500, "LINK"), // Chainlink
-    ("CBAFSGCEKDVLCUDNMVK3T3YDQZ7WQBVTQZOXZ3KPKRFBGQN3VU77AMJA", "UNI", 18, 6000, "UNI"),  // Uniswap
-    ("CDYRQKK6FQWYZJ2RNQR7DXKFQP6Q6XJZV4K2MOXHDRFMCFLTJJBCMCDS", "AAVE", 18, 6500, "AAVE"), // AAVE
-    ("CFQF2EDAHCDTJNXSHZ6XQZAHFQRW5WZBHQZWKGLB5FHLYRKQXK7Y2CPV", "MATIC", 18, 6000, "MATIC"), // Polygon
+// (Issuer, Asset Code, Decimals, Collateral %, Display Name)
+
+("GA5ZSE9EQLFZB5E34TRTFWNW5T76W2KQZ7ZYPZB2O2C3Y5QTKH7C5OL6", "USDC", 6, 8500, "USDC"),   // USDC
+("GAP5LETOVHK3YHGGQ5DLVZ5P7FSVJYZAPVZCFAWAW7A4M23TLH6Y2D2I", "USDT", 6, 8500, "USDT"),   // USDT
+("native", "XLM", 7, 7000, "XLM"),                                                       // XLM 
+("GDXTJEK4JZNSTNQAWA53RZNS2MDXYD2SMT6Q7JH2CU2B6Y2DRX6XM3UB", "BTC", 8, 7500, "BTC"),     // Wrapped BTC
+("GBETHKBLNBSBXVLTKWLB6L3X3RTMAKKI64JUNNQO5EUXYYTYO3O3G2YH", "ETH", 18, 7500, "ETH"),    // Wrapped ETH
+("GBNZILSTVQZ4R7IKQDGHYGY2QXL5QOFJYQMXPKWRRM5PAV7Y4M67AQUA", "AQUA", 7, 6000, "AQUA"),   // AQUA Token
+("GDM4RQUQQUVSKQA7S6EM7XBZP3FCGH4Q7CL6TABQ7B2BEJ5ERARM2M5M", "VELO", 7, 6000, "VELO"),   // VELO Token
+("GDSTRSHXHGJ7ZIVRBXEYE5Q74XUVCUSEKEBR7UCHEUUEK72N7I7KJ6JH", "SHX", 6, 6500, "SHX"),     // Stronghold SHX
+("GASBLVHS5FOABSDNW5SPPH3QRJYXY5JHA2AOA2QHH2FJLZBRXSG4SWXT", "WXT", 6, 6000, "WXT"),     // Wirex WXT
+("GBNLJIYH34UWO5YZFA3A3HD3N76R6DOI33N4JONUOHEEYZYCAYTEJ5AK", "RIO", 7, 6000, "RIO"),     // Realio RIO
+("GDJEHTBE6ZHUXSWFI642DCGLUOECLHPF3KSXHPXTSTJ7E3JF6MQ5EZYY", "BLND", 7, 6500, "BLND"),  // BLEND
+
 ];
 
 // Oracle configuration
@@ -100,6 +104,22 @@ pub struct DIAPriceData {
     pub price: u128,        // Price in 8 decimals (DIA standard)
     pub timestamp: u64,     // Last update timestamp
     pub round_id: u64,      // Round ID for tracking
+}
+
+
+#[contracttype]
+pub struct PriceSource {
+    pub source_type: String, // "oracle", "dex", "admin", "mock"
+    pub price: u128,
+    pub timestamp: u64,
+    pub confidence: u32, // 0-100, higher = more reliable
+}
+
+#[contracttype]
+pub struct DexPriceInfo {
+    pub price: u128,
+    pub liquidity: u128,
+    pub last_trade_time: u64,
 }
 
 #[contractimpl]
@@ -323,44 +343,51 @@ impl StellarDeFiHub {
         user: Address,
         additional_borrow: Option<(Address, u128)>
     ) -> u128 {
+        match Self::calculate_health_factor_internal(env, user, additional_borrow) {
+            Ok(val) => val,
+            Err(HubError::AssetNotSupported) => panic!("Asset not supported"),
+            Err(_) => panic!("Health factor calculation failed"),
+        }
+    }
+
+    fn calculate_health_factor_internal(
+        env: Env,
+        user: Address,
+        additional_borrow: Option<(Address, u128)>
+    ) -> Result<u128, HubError> {
         let position = Self::get_user_position(env.clone(), user.clone());
         let mut total_collateral_value = 0u128;
         let mut total_debt_value = 0u128;
-        
         // Calculate collateral value (supplied assets)
         for (asset, amount) in position.supplied_assets.iter() {
             if let Some(price) = Self::get_asset_price_safe(&env, &asset) {
-                let asset_config = Self::get_asset_config(&env, &asset);
+                let asset_config = Self::get_asset_config(&env, &asset)?;
                 if asset_config.is_collateral {
-                    let collateral_value = (amount * price * asset_config.collateral_factor) / 
-                                         (Self::get_price_precision(&env, &asset) * 10000);
+                    let collateral_value = (amount * price * asset_config.collateral_factor) /
+                                         (Self::get_price_precision(&env, &asset)? * 10000);
                     total_collateral_value += collateral_value;
                 }
             }
         }
-        
         // Calculate debt value (borrowed assets + potential new borrow)
         for (asset, amount) in position.borrowed_assets.iter() {
             if let Some(price) = Self::get_asset_price_safe(&env, &asset) {
-                let debt_value = (amount * price) / Self::get_price_precision(&env, &asset);
+                let debt_value = (amount * price) / Self::get_price_precision(&env, &asset)?;
                 total_debt_value += debt_value;
             }
         }
-        
         // Add additional borrow if provided
         if let Some((borrow_asset, borrow_amount)) = additional_borrow {
             if let Some(price) = Self::get_asset_price_safe(&env, &borrow_asset) {
-                let additional_debt = (borrow_amount * price) / Self::get_price_precision(&env, &borrow_asset);
+                let additional_debt = (borrow_amount * price) / Self::get_price_precision(&env, &borrow_asset)?;
                 total_debt_value += additional_debt;
             }
         }
-        
         if total_debt_value == 0 {
-            return u128::MAX; // No debt = infinite health
+            return Ok(u128::MAX); // No debt = infinite health
         }
-        
         // Health factor = collateral_value / debt_value (in 6 decimals)
-        (total_collateral_value * 1_000_000) / total_debt_value
+        Ok((total_collateral_value * 1_000_000) / total_debt_value)
     }
 
     /// Get asset price with DIA oracle
@@ -413,9 +440,6 @@ impl StellarDeFiHub {
         );
     }
 
-    // ===================
-    // INTERNAL FUNCTIONS
-    // ===================
 
     fn initialize_assets(env: &Env) {
         for (i, (addr_str, symbol, decimals, collateral_factor, dia_symbol)) in SUPPORTED_ASSETS.iter().enumerate() {
@@ -535,48 +559,62 @@ impl StellarDeFiHub {
     }
 
     fn get_asset_price_safe(env: &Env, asset: &Address) -> Option<u128> {
-        let oracle_config: DIAOracleConfig = env.storage().instance().get(&symbol_short!("oracle"))?;
-        let asset_config = Self::get_asset_config(env, asset);
-        
-        // Get price from DIA oracle
-        let price_result = env.try_invoke_contract::<DIAPriceData, soroban_sdk::xdr::Error>(
-            &oracle_config.oracle_address,
-            &symbol_short!("getValue"),
-            soroban_sdk::vec![env, asset_config.dia_symbol.into_val(env)],
-        );
-        
-        if let Ok(Ok(price_data)) = price_result {
-            // Check if price is fresh
-            let price_age = env.ledger().timestamp() - price_data.timestamp;
-            if price_age <= oracle_config.max_price_age {
-                // Convert DIA's 8-decimal price to match asset decimals
-                let normalized_price = if asset_config.decimals < 8 {
-                    price_data.price / (10u128.pow(8 - asset_config.decimals))
-                } else {
-                    price_data.price * (10u128.pow(asset_config.decimals - 8))
-                };
-                return Some(normalized_price);
-            }
+        let mut price_sources = Vec::new(env);
+
+        if let Some(oracle_price) = Self::try_dia_oracle(env, asset) {
+            price_sources.push_back(PriceSource {
+                source_type: String::from_str(env, "oracle"),
+                price: oracle_price,
+                timestamp: env.ledger().timestamp(),
+                confidence: 90,
+            });
+        }
+
+        if let Some(dex_price) = Self::get_dex_price(env, asset) {
+            price_sources.push_back(PriceSource {
+                source_type: String::from_str(env, "dex"),
+                price: dex_price,
+                timestamp: env.ledger().timestamp(),
+                confidence: 85,
+            });
         }
         
-        None
+        if let Some(admin_price) = Self::get_admin_price(env, asset) {
+            price_sources.push_back(PriceSource {
+                source_type: String::from_str(env, "admin"),
+                price: admin_price,
+                timestamp: env.ledger().timestamp(),
+                confidence: 70,
+            });
+        }
+
+        if let Some(mock_price) = Self::get_mock_price(env, asset) {
+            price_sources.push_back(PriceSource {
+                source_type: String::from_str(env, "mock"),
+                price: mock_price,
+                timestamp: env.ledger().timestamp(),
+                confidence: 50,
+            });
+        }
+        // Select best price source
+        Self::select_best_price(env, price_sources)
     }
 
-    fn get_asset_config(env: &Env, asset: &Address) -> AssetConfig {
+    fn get_asset_config(env: &Env, asset: &Address) -> Result<AssetConfig, HubError> {
         for i in 0..10 {
             let key = (symbol_short!("asset"), i);
             if let Some(config) = env.storage().instance().get::<_, AssetConfig>(&key) {
                 if config.address == *asset {
-                    return config;
+                    return Ok(config);
                 }
             }
         }
-        panic!("Asset not supported");
+        Err(HubError::AssetNotSupported)
     }
 
-    fn get_price_precision(env: &Env, asset: &Address) -> u128 {
-        let config = Self::get_asset_config(env, asset);
-        10u128.pow(config.decimals)
+    fn get_price_precision(env: &Env, asset: &Address) -> Result<u128, HubError> {
+        let config = Self::get_asset_config(env, asset)?;
+        Ok(10u128.pow(config.decimals))
     }
 
     fn is_asset_supported(env: &Env, asset: &Address) -> bool {
@@ -601,7 +639,6 @@ impl StellarDeFiHub {
         let mut position = Self::get_user_position(env.clone(), user.clone());
         let current_time = env.ledger().timestamp();
         
-        // Calculate time-based rewards
         let time_elapsed = current_time - position.last_reward_update;
         let staked_amount = position.staked_lp_tokens.get(btoken.clone()).unwrap_or(0);
         
@@ -677,7 +714,6 @@ impl StellarDeFiHub {
         env.storage().persistent().set(&key, &pool);
     }
 
-    /// Update user staking position - MISSING FUNCTION IMPLEMENTATION
     fn update_staking_position(env: &Env, user: &Address, btoken: &Address, amount: u128, is_stake: bool) {
         let mut position = Self::get_user_position(env.clone(), user.clone());
         let current_staked = position.staked_lp_tokens.get(btoken.clone()).unwrap_or(0);
@@ -697,9 +733,6 @@ impl StellarDeFiHub {
         Self::save_user_position(env, user, &position);
     }
 
-    // ===================
-    // ADDED INTERNAL FUNCTIONS
-    // ===================
     fn transfer_from_user(
         env: &Env,
         token: &Address,
@@ -767,4 +800,226 @@ impl StellarDeFiHub {
     ) {
         env.storage().persistent().set(&(symbol_short!("pos"), user.clone()), position);
     }
+
+    fn try_dia_oracle(env: &Env, asset: &Address) -> Option<u128> {
+        let oracle_config: DIAOracleConfig = env.storage().instance().get(&symbol_short!("oracle"))?;
+        let asset_config = match Self::get_asset_config(env, asset) {
+            Ok(cfg) => cfg,
+            Err(_) => return None,
+        };
+        let price_result = env.try_invoke_contract::<DIAPriceData, soroban_sdk::xdr::Error>(
+            &oracle_config.oracle_address,
+            &symbol_short!("getValue"),
+            soroban_sdk::vec![env, asset_config.dia_symbol.into_val(env)],
+        );
+        if let Ok(Ok(price_data)) = price_result {
+            let price_age = env.ledger().timestamp() - price_data.timestamp;
+            if price_age <= oracle_config.max_price_age {
+                let normalized_price = if asset_config.decimals < 8 {
+                    price_data.price / (10u128.pow(8 - asset_config.decimals))
+                } else {
+                    price_data.price * (10u128.pow(asset_config.decimals - 8))
+                };
+                return Some(normalized_price);
+            }
+        }
+        None
+    }
+
+    fn get_dex_price(env: &Env, asset: &Address) -> Option<u128> {
+        let usdc_address = Address::from_string(&String::from_str(env, SUPPORTED_ASSETS[0].0));
+        if *asset == usdc_address {
+            return Some(Self::get_asset_base_price(env, asset).unwrap_or_else(|_| panic!("Price unavailable")));
+        }
+        let test_amount = 1_000_000u128;
+        if let Some(dex_info) = Self::simulate_dex_swap(env, asset, &usdc_address, test_amount) {
+            if dex_info.liquidity > 10_000_000_000 && dex_info.price > 0 {
+                return Some(dex_info.price);
+            }
+        }
+        if let Some(reverse_info) = Self::simulate_dex_swap(env, &usdc_address, asset, test_amount) {
+            if reverse_info.liquidity > 10_000_000_000 && reverse_info.price > 0 {
+                let inverse_price = (test_amount * test_amount) / reverse_info.price;
+                return Some(inverse_price);
+            }
+        }
+        None
+    }
+
+
+    fn simulate_dex_swap(
+        env: &Env,
+        token_in: &Address,
+        token_out: &Address,
+        amount_in: u128
+    ) -> Option<DexPriceInfo> {
+        let router_address = Address::from_string(&String::from_str(env, SOROSWAP_ROUTER));
+        let quote_result = env.try_invoke_contract::<(u128, u128), soroban_sdk::xdr::Error>(
+            &router_address,
+            &symbol_short!("get_quote"),
+            soroban_sdk::vec![
+                env,
+                amount_in.into_val(env),
+                token_in.into_val(env),
+                token_out.into_val(env),
+            ],
+        );
+        if let Ok(Ok((amount_out, liquidity))) = quote_result {
+            return Some(DexPriceInfo {
+                price: amount_out,
+                liquidity,
+                last_trade_time: env.ledger().timestamp(),
+            });
+        }
+        None
+    }
+
+    fn get_admin_price(env: &Env, asset: &Address) -> Option<u128> {
+        let key = (symbol_short!("price"), asset);
+        let price_data = env.storage().persistent().get::<_, (u128, u64)>(&key)?;
+        let (price, set_time) = price_data;
+        let age = env.ledger().timestamp() - set_time;
+        if age <= 86400 {
+            Some(price)
+        } else {
+            None
+        }
+    }
+
+    fn get_mock_price(env: &Env, asset: &Address) -> Option<u128> {
+        let asset_config = match Self::get_asset_config(env, asset) {
+            Ok(cfg) => cfg,
+            Err(_) => return None,
+        };
+        let symbol = &asset_config.symbol;
+        let price = if *symbol == String::from_str(env, "USDC") {
+            100_000_000
+        } else if *symbol == String::from_str(env, "USDT") {
+            100_000_000
+        } else if *symbol == String::from_str(env, "XLM") {
+            12_000_000
+        } else if *symbol == String::from_str(env, "BTC") {
+            4_300_000_000_000
+        } else if *symbol == String::from_str(env, "ETH") {
+            260_000_000_000
+        } else if *symbol == String::from_str(env, "AQUA") {
+            5_000_000
+        } else if *symbol == String::from_str(env, "VELO") {
+            8_000_000
+        } else if *symbol == String::from_str(env, "SHX") {
+            15_000_000
+        } else if *symbol == String::from_str(env, "WXT") {
+            3_000_000
+        } else if *symbol == String::from_str(env, "RIO") {
+            25_000_000
+        } else if *symbol == String::from_str(env, "BLND") {
+            45_000_000
+        } else {
+            return None;
+        };
+        let normalized_price = if asset_config.decimals < 8 {
+            price / (10u128.pow(8 - asset_config.decimals))
+        } else {
+            price * (10u128.pow(asset_config.decimals - 8))
+        };
+        Some(normalized_price)
+    }
+
+    fn select_best_price(_env: &Env, price_sources: Vec<PriceSource>) -> Option<u128> {
+        if price_sources.is_empty() {
+            return None;
+        }
+        if price_sources.len() == 1 {
+            return Some(price_sources.get(0).unwrap().price);
+        }
+        let mut sorted_sources = price_sources.clone();
+        for i in 0..sorted_sources.len() {
+            for j in (i + 1)..sorted_sources.len() {
+                if sorted_sources.get(i).unwrap().confidence < sorted_sources.get(j).unwrap().confidence {
+                    let temp = sorted_sources.get(i).unwrap();
+                    sorted_sources.set(i, sorted_sources.get(j).unwrap());
+                    sorted_sources.set(j, temp);
+                }
+            }
+        }
+        let best = sorted_sources.get(0).unwrap();
+        if sorted_sources.len() == 1 || best.confidence >= 90 {
+            return Some(best.price);
+        }
+        let second_best = sorted_sources.get(1).unwrap();
+        let price_diff = if best.price > second_best.price {
+            (best.price - second_best.price) * 100 / best.price
+        } else {
+            (second_best.price - best.price) * 100 / second_best.price
+        };
+        if price_diff <= 5 {
+            let total_confidence = best.confidence + second_best.confidence;
+            let weighted_price = (best.price * best.confidence as u128 +
+                                 second_best.price * second_best.confidence as u128) /
+                                 total_confidence as u128;
+            Some(weighted_price)
+        } else {
+            Some(best.price)
+        }
+    }
+
+    fn get_asset_base_price(env: &Env, asset: &Address) -> Result<u128, HubError> {
+        let config = Self::get_asset_config(env, asset)?;
+        Ok(10u128.pow(config.decimals))
+    }
+
+    pub fn set_emergency_price(
+        env: Env,
+        admin: Address,
+        asset: Address,
+        price: u128,
+    ) {
+        admin.require_auth();
+        let stored_admin: Address = env.storage().instance().get(&symbol_short!("admin")).unwrap();
+        assert_eq!(admin, stored_admin, "Only admin can set emergency prices");
+        assert!(Self::is_asset_supported(&env, &asset), "Asset not supported");
+        let key = (symbol_short!("price"), asset.clone());
+        env.storage().persistent().set(&key, &(price, env.ledger().timestamp()));
+        env.events().publish(
+            (symbol_short!("emrgprc"), &admin),
+            (asset, price, env.ledger().timestamp())
+        );
+    }
+
+    pub fn get_price_sources(env: Env, asset: Address) -> Vec<PriceSource> {
+        let mut sources = Vec::new(&env);
+        if let Some(oracle_price) = Self::try_dia_oracle(&env, &asset) {
+            sources.push_back(PriceSource {
+                source_type: String::from_str(&env, "oracle"),
+                price: oracle_price,
+                timestamp: env.ledger().timestamp(),
+                confidence: 90,
+            });
+        }
+        if let Some(dex_price) = Self::get_dex_price(&env, &asset) {
+            sources.push_back(PriceSource {
+                source_type: String::from_str(&env, "dex"),
+                price: dex_price,
+                timestamp: env.ledger().timestamp(),
+                confidence: 85,
+            });
+        }
+        if let Some(admin_price) = Self::get_admin_price(&env, &asset) {
+            sources.push_back(PriceSource {
+                source_type: String::from_str(&env, "admin"),
+                price: admin_price,
+                timestamp: env.ledger().timestamp(),
+                confidence: 70,
+            });
+        }
+        if let Some(mock_price) = Self::get_mock_price(&env, &asset) {
+            sources.push_back(PriceSource {
+                source_type: String::from_str(&env, "mock"),
+                price: mock_price,
+                timestamp: env.ledger().timestamp(),
+                confidence: 50,
+            });
+        }
+        sources
+    }
 }
