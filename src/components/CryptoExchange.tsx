@@ -53,6 +53,7 @@ const CryptoExchange = () => {
   };
 
   const handleConnectWallet = async () => {
+    console.log('[Wallet] Selected wallet:', selectedWallet);
     if (!selectedWallet) {
       toast({
         title: "Select Wallet",
@@ -62,7 +63,9 @@ const CryptoExchange = () => {
       return;
     }
     try {
+      console.log('[Wallet] Attempting to connect...');
       const address = await connectWallet(selectedWallet);
+      console.log('[Wallet] Connection result:', address);
       if (address) {
         setWalletAddress(address);
         await loadUserData(address);
@@ -78,6 +81,7 @@ const CryptoExchange = () => {
         });
       }
     } catch (error) {
+      console.error('[Wallet] Connection error:', error);
       toast({
         title: "Connection Error",
         description: "Failed to connect wallet",
@@ -285,6 +289,21 @@ const CryptoExchange = () => {
 
   return (
     <div className="w-full max-w-4xl mx-auto space-y-6">
+      {/* Wallet Selection */}
+      <div className="mb-4">
+        <label htmlFor="wallet-select">Select Wallet:</label>
+        <select
+          id="wallet-select"
+          value={selectedWallet ?? ''}
+          onChange={e => setSelectedWallet(e.target.value as WalletType)}
+          className="ml-2 border rounded px-2 py-1"
+        >
+          <option value="">-- Select --</option>
+          <option value={WalletType.Freighter}>Freighter</option>
+          <option value={WalletType.Albedo}>Albedo</option>
+        </select>
+        <span className="ml-4 text-xs text-muted-foreground">Selected: {selectedWallet ?? 'None'}</span>
+      </div>
       {/* Wallet Connection */}
       <Card>
         <CardHeader>
