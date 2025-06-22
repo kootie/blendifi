@@ -14,7 +14,7 @@ export const CONTRACT_ID = CONFIG.CONTRACT_ID;
 // Supported assets from your smart contract
 export const SUPPORTED_ASSETS = {
   USDC: {
-    address: "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQAHHAGCM6GN",
+    address: "GA5ZSE9EQLFZB5E34TRTFWNW5T76W2KQZ7ZYPZB2O2C3Y5QTKH7C5OL6",
     symbol: "USDC",
     decimals: 6,
     collateral_factor: 8500,
@@ -22,15 +22,15 @@ export const SUPPORTED_ASSETS = {
     dia_symbol: "USDC"
   },
   USDT: {
-    address: "CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA",
-    symbol: "USDT", 
+    address: "GAP5LETOVHK3YHGGQ5DLVZ5P7FSVJYZAPVZCFAWAW7A4M23TLH6Y2D2I",
+    symbol: "USDT",
     decimals: 6,
     collateral_factor: 8500,
     is_collateral: true,
     dia_symbol: "USDT"
   },
   XLM: {
-    address: "CA7QYNF7SOWQ3GLR2BGMZEHXAVIRZA4KVWLTJJFC7MGXUA74P7UJUIGZ",
+    address: "native",
     symbol: "XLM",
     decimals: 7,
     collateral_factor: 7000,
@@ -38,7 +38,7 @@ export const SUPPORTED_ASSETS = {
     dia_symbol: "XLM"
   },
   BTC: {
-    address: "CB64D3G7SM2RTH6JSGG34DDTFTQ5CFDKVDZJZSODMZZ4SNSHNP4OJ73J",
+    address: "GDXTJEK4JZNSTNQAWA53RZNS2MDXYD2SMT6Q7JH2CU2B6Y2DRX6XM3UB",
     symbol: "BTC",
     decimals: 8,
     collateral_factor: 7500,
@@ -46,52 +46,60 @@ export const SUPPORTED_ASSETS = {
     dia_symbol: "BTC"
   },
   ETH: {
-    address: "CAJGCM4LVWAFDJSJQ6Q6XCQRMCAAFVZLWXGZ7NUFRBULQ3OHQMGQXHXW",
+    address: "GBETHKBLNBSBXVLTKWLB6L3X3RTMAKKI64JUNNQO5EUXYYTYO3O3G2YH",
     symbol: "ETH",
     decimals: 18,
     collateral_factor: 7500,
     is_collateral: true,
     dia_symbol: "ETH"
   },
-  DIA: {
-    address: "CCXSYV2VNFVVDPGC4K2L2JCQJ6KMXLPYGJHXJ5Q3N7MFCOVHF4CLSSGX",
-    symbol: "DIA",
-    decimals: 18,
+  AQUA: {
+    address: "GBNZILSTVQZ4R7IKQDGHYGY2QXL5QOFJYQMXPKWRRM5PAV7Y4M67AQUA",
+    symbol: "AQUA",
+    decimals: 7,
     collateral_factor: 6000,
     is_collateral: true,
-    dia_symbol: "DIA"
+    dia_symbol: "AQUA"
   },
-  LINK: {
-    address: "CAXPLP4OJFG5CT6SWJVHFGFBFNYP4CQYBZRQLXBX4QJSKKIWW7TLOYMD",
-    symbol: "LINK",
-    decimals: 18,
+  VELO: {
+    address: "GDM4RQUQQUVSKQA7S6EM7XBZP3FCGH4Q7CL6TABQ7B2BEJ5ERARM2M5M",
+    symbol: "VELO",
+    decimals: 7,
+    collateral_factor: 6000,
+    is_collateral: true,
+    dia_symbol: "VELO"
+  },
+  SHX: {
+    address: "GDSTRSHXHGJ7ZIVRBXEYE5Q74XUVCUSEKEBR7UCHEUUEK72N7I7KJ6JH",
+    symbol: "SHX",
+    decimals: 6,
     collateral_factor: 6500,
     is_collateral: true,
-    dia_symbol: "LINK"
+    dia_symbol: "SHX"
   },
-  UNI: {
-    address: "CBAFSGCEKDVLCUDNMVK3T3YDQZ7WQBVTQZOXZ3KPKRFBGQN3VU77AMJA",
-    symbol: "UNI",
-    decimals: 18,
+  WXT: {
+    address: "GASBLVHS5FOABSDNW5SPPH3QRJYXY5JHA2AOA2QHH2FJLZBRXSG4SWXT",
+    symbol: "WXT",
+    decimals: 6,
     collateral_factor: 6000,
     is_collateral: true,
-    dia_symbol: "UNI"
+    dia_symbol: "WXT"
   },
-  AAVE: {
-    address: "CDYRQKK6FQWYZJ2RNQR7DXKFQP6Q6XJZV4K2MOXHDRFMCFLTJJBCMCDS",
-    symbol: "AAVE",
-    decimals: 18,
+  RIO: {
+    address: "GBNLJIYH34UWO5YZFA3A3HD3N76R6DOI33N4JONUOHEEYZYCAYTEJ5AK",
+    symbol: "RIO",
+    decimals: 7,
+    collateral_factor: 6000,
+    is_collateral: true,
+    dia_symbol: "RIO"
+  },
+  BLND: {
+    address: "GXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+    symbol: "BLND",
+    decimals: 7,
     collateral_factor: 6500,
     is_collateral: true,
-    dia_symbol: "AAVE"
-  },
-  MATIC: {
-    address: "CFQF2EDAHCDTJNXSHZ6XQZAHFQRW5WZBHQZWKGLB5FHLYRKQXK7Y2CPV",
-    symbol: "MATIC",
-    decimals: 18,
-    collateral_factor: 6000,
-    is_collateral: true,
-    dia_symbol: "MATIC"
+    dia_symbol: "BLND"
   }
 };
 
