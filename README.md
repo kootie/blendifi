@@ -1,95 +1,228 @@
-# Welcome to your Lovable project
+# Stellar DeFi Hub
 
-## System Requirements
+A comprehensive DeFi application built on Stellar that integrates swap functionality, lending/borrowing through Blend pools, and staking rewards. The frontend is built with React, TypeScript, and integrates with the Stellar blockchain using Freighter wallet.
 
-- **Operating System:** Windows 10+ / macOS / Linux
-- **Node.js:** v18.x or later (recommended)
-- **npm:** v9.x or later (recommended)
-- **Package Managers:** npm (or yarn/pnpm if you prefer)
-- **Browser:** Latest Chrome, Firefox, or Edge for development
-- **Wallet:** Freighter (for Stellar/Soroban integration)
-- **Other:** Internet connection for package installation and blockchain access
+## Features
 
-## System Features
+- **Token Swapping**: Exchange cryptocurrencies using Soroswap integration
+- **Lending & Borrowing**: Supply assets to Blend pools and borrow against collateral
+- **Staking Rewards**: Stake bTokens to earn protocol fees and rewards
+- **Health Factor Monitoring**: Real-time monitoring of borrowing health factors
+- **Multi-Asset Support**: Support for 10 major cryptocurrencies
+- **Portfolio Management**: Comprehensive portfolio tracking and analytics
 
-- Crypto-to-crypto swap (via Soroban smart contract)
-- Staking of LP/bTokens for rewards
-- Loan requests using supplied crypto as collateral
-- Wallet connection (Freighter support)
-- Real-time health factor and liquidation logic
-- Admin management of supported assets and oracle configuration
-- Upgradable oracle and asset list
-- Liquidation of undercollateralized positions
-- Modern React UI with shadcn-ui and Tailwind CSS
+## Supported Assets
 
-## Project info
+The application supports the following assets on Stellar testnet:
 
-**URL**: https://lovable.dev/projects/0821b348-d833-4f6d-a70d-c270c4dc2648
+- **USDC** (USD Coin) - 85% collateral factor
+- **USDT** (Tether) - 85% collateral factor
+- **XLM** (Stellar) - 70% collateral factor
+- **BTC** (Bitcoin) - 75% collateral factor
+- **ETH** (Ethereum) - 75% collateral factor
+- **DIA** (DIA Token) - 60% collateral factor
+- **LINK** (Chainlink) - 65% collateral factor
+- **UNI** (Uniswap) - 60% collateral factor
+- **AAVE** (AAVE) - 65% collateral factor
+- **MATIC** (Polygon) - 60% collateral factor
 
-## How can I edit this code?
+## Prerequisites
 
-There are several ways of editing your application.
+- Node.js 18+ and npm/yarn
+- Freighter wallet extension installed
+- Stellar testnet account with test XLM
+- Deployed smart contract on Stellar testnet
 
-**Use Lovable**
+## Installation
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/0821b348-d833-4f6d-a70d-c270c4dc2648) and start prompting.
+1. Clone the repository:
+```bash
+git clone <repository-url>
+cd blendifi
+```
 
-Changes made via Lovable will be committed automatically to this repo.
+2. Install dependencies:
+```bash
+npm install
+```
 
-**Use your preferred IDE**
+3. Configure your contract:
+   - Open `src/lib/config.ts`
+   - Replace `YOUR_CONTRACT_ID_HERE` with your deployed contract ID
+   - Ensure all external contract addresses are correct for your network
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+4. Start the development server:
+```bash
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+## Smart Contract Setup
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+Before using the frontend, ensure your smart contract is properly deployed and initialized:
 
-**Use GitHub Codespaces**
+1. **Deploy the contract** to Stellar testnet
+2. **Initialize the contract** with an admin address
+3. **Verify external contracts** are accessible:
+   - Blend Pool Factory
+   - Soroswap Router
+   - DIA Oracle
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## Usage
 
-## What technologies are used for this project?
+### Connecting Wallet
 
-This project is built with .
+1. Click "Connect Freighter Wallet" button
+2. Approve the connection in Freighter
+3. Your wallet address will be displayed and portfolio data will load
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+### Swapping Tokens
 
-## How can I deploy this project?
+1. Select the "Swap" tab
+2. Choose the token you want to swap from and to
+3. Enter the amount
+4. Click "Swap Tokens"
+5. Approve the transaction in Freighter
 
-Simply open [Lovable](https://lovable.dev/projects/0821b348-d833-4f6d-a70d-c270c4dc2648) and click on Share -> Publish.
+### Supplying Assets
 
-## Can I connect a custom domain to my Lovable project?
+1. Select the "Supply" tab
+2. Choose the asset you want to supply
+3. Enter the amount
+4. Click "Supply to Blend"
+5. Approve the transaction in Freighter
 
-Yes, you can!
+### Borrowing Assets
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+1. Select the "Borrow" tab
+2. Choose the asset you want to borrow
+3. Enter the amount
+4. Ensure your health factor is above 120%
+5. Click "Borrow from Blend"
+6. Approve the transaction in Freighter
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+### Staking bTokens
+
+1. Select the "Stake" tab
+2. Choose the bToken you want to stake
+3. Enter the amount
+4. Click "Stake bTokens"
+5. Approve the transaction in Freighter
+
+## Portfolio Features
+
+The application provides comprehensive portfolio management:
+
+- **Health Factor Monitoring**: Real-time calculation and display of borrowing health
+- **Asset Positions**: Detailed view of supplied and borrowed assets
+- **Portfolio Value**: Total collateral, borrowed, and net position values
+- **Price Information**: Real-time asset prices from DIA oracle
+
+## Technical Architecture
+
+### Frontend Stack
+- **React 18** with TypeScript
+- **Vite** for build tooling
+- **Tailwind CSS** for styling
+- **Shadcn/ui** for UI components
+- **React Router** for navigation
+- **React Query** for data fetching
+
+### Blockchain Integration
+- **@stellar/stellar-sdk** for Stellar operations
+- **@stellar/freighter-api** for wallet integration
+- **soroban-client** for smart contract interactions
+
+### Key Components
+- `CryptoExchange`: Main DeFi interface with tabs for different operations
+- `UserPortfolio`: Detailed portfolio analytics and position tracking
+- `CryptoSelector`: Asset selection dropdown with collateral factors
+- `stellar.ts`: Core blockchain integration and contract calls
+
+## Configuration
+
+### Environment Variables
+Create a `.env` file in the root directory:
+
+```env
+VITE_CONTRACT_ID=your_contract_id_here
+VITE_NETWORK=testnet
+```
+
+### Contract Configuration
+Update `src/lib/config.ts` with your specific contract addresses and settings.
+
+## Development
+
+### Available Scripts
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run preview` - Preview production build
+- `npm run lint` - Run ESLint
+
+### Project Structure
+```
+src/
+├── components/          # React components
+│   ├── ui/             # Shadcn/ui components
+│   ├── CryptoExchange.tsx
+│   ├── CryptoSelector.tsx
+│   ├── UserPortfolio.tsx
+│   └── Navbar.tsx
+├── lib/                # Utility functions
+│   ├── stellar.ts      # Blockchain integration
+│   ├── config.ts       # Configuration
+│   └── utils.ts        # General utilities
+├── hooks/              # Custom React hooks
+├── pages/              # Page components
+└── main.tsx           # Application entry point
+```
+
+## Troubleshooting
+
+### Common Issues
+
+1. **Wallet Connection Fails**
+   - Ensure Freighter is installed and unlocked
+   - Check that you're on the correct network (testnet)
+   - Try refreshing the page
+
+2. **Contract Calls Fail**
+   - Verify your contract ID is correct in `config.ts`
+   - Ensure your contract is properly initialized
+   - Check that external contracts are accessible
+
+3. **Health Factor Issues**
+   - Ensure you have sufficient collateral before borrowing
+   - Check that asset prices are available from the oracle
+   - Verify collateral factors are correctly set
+
+4. **Transaction Failures**
+   - Ensure you have sufficient XLM for transaction fees
+   - Check that you have sufficient token balances
+   - Verify transaction parameters are within limits
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests if applicable
+5. Submit a pull request
+
+## License
+
+This project is licensed under the MIT License.
+
+## Support
+
+For support and questions:
+- Check the troubleshooting section
+- Review the smart contract documentation
+- Open an issue on GitHub
+
+## Security
+
+- Never share your private keys
+- Always verify contract addresses before transactions
+- Use testnet for development and testing
+- Review smart contract code before deployment

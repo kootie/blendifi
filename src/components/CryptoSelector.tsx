@@ -6,19 +6,16 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { SUPPORTED_ASSETS } from "@/lib/stellar";
 
-const cryptos = [
-  { code: "USDC", name: "USD Coin" },
-  { code: "USDT", name: "Tether" },
-  { code: "XLM", name: "Stellar" },
-  { code: "BTC", name: "Bitcoin" },
-  { code: "ETH", name: "Ethereum" },
-  { code: "DIA", name: "DIA" },
-  { code: "LINK", name: "Chainlink" },
-  { code: "UNI", name: "Uniswap" },
-  { code: "AAVE", name: "Aave" },
-  { code: "MATIC", name: "Polygon" },
-];
+// Convert SUPPORTED_ASSETS to the format expected by the component
+const cryptos = Object.entries(SUPPORTED_ASSETS).map(([code, asset]) => ({
+  code,
+  name: asset.symbol,
+  address: asset.address,
+  decimals: asset.decimals,
+  collateral_factor: asset.collateral_factor,
+}));
 
 interface CryptoSelectorProps {
   selected: string;
@@ -46,7 +43,12 @@ const CryptoSelector = ({ selected, onSelect, label }: CryptoSelectorProps) => {
               onClick={() => onSelect(crypto)}
               className="justify-between"
             >
-              {crypto.name} ({crypto.code})
+              <div className="flex flex-col">
+                <span>{crypto.name} ({crypto.code})</span>
+                <span className="text-xs text-muted-foreground">
+                  Collateral: {(crypto.collateral_factor / 100).toFixed(0)}%
+                </span>
+              </div>
               {selected === crypto.code && <Check className="h-4 w-4" />}
             </DropdownMenuItem>
           ))}
