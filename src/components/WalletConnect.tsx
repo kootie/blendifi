@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useFreighter } from '../hooks/useFreighter';
+import { useFreighter } from '../hooks/useFreighter.tsx';
 
 const WalletConnect: React.FC = () => {
   const { publicKey, network, error, connect } = useFreighter();

@@ -1,7 +1,7 @@
 import { Server, TransactionBuilder, BASE_FEE, Networks, Account, xdr } from '@stellar/stellar-sdk';
 import { Server as SorobanServer } from '@stellar/soroban-client';
 
-const BLEND_CONTRACT_ID = 'CBV3Q4PBHOAIHTJUR433DUWHWFI3PBDS4AR52YQM32KMX62APVFK6PMT';
+const BLEND_CONTRACT_ID = 'CA26SDP73CGMH5E5HHTHT3DN4YPH4DJUNRBRHPB4ZJTF2DQXDMCXXTZH';
 const SOROBAN_RPC_URL = 'https://soroban-testnet.stellar.org';
 const sorobanServer = new SorobanServer(SOROBAN_RPC_URL);
 
