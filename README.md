@@ -1,19 +1,15 @@
 # Blendify: Stellar DeFi Hub
 
-A modern DeFi application built on Stellar, featuring a beautiful Blendify-branded UI, wallet connection via Freighter, and Soroban smart contract integration.
+A fully integrated DeFi frontend for the Stellar blockchain, featuring a modern Blendify-branded UI, live contract calls to a Soroban smart contract, and seamless wallet connection via Freighter. Supports real-time swap, borrow, and stake operations on Stellar Testnet.
 
 ## 🚀 Features
 
 - **Modern UI:** Blendify color palette, Inter font, and responsive design
 - **Freighter Wallet Integration:** Secure wallet connection and transaction signing using official @stellar/freighter-api
-- **DeFi Operations UI:** Tabs for Swapping, Borrowing, and Staking with modern styling
+- **Live DeFi Operations:** Real contract calls for Swapping, Borrowing, and Staking via Soroban smart contract
 - **Portfolio Dashboard:** Health factor monitoring, rewards tracking, and position management
-- **Multi-Asset Support:** XLM, USDC, BLND, WETH, WBTC with testnet addresses
+- **Multi-Asset Support:** XLM, USDC, BLND, WETH, WBTC (and more) with testnet addresses
 - **Advanced Styling:** Custom Blendify components, gradients, and improved typography
-
-> **Note:**  
-> The UI for Swap, Borrow, and Stake is complete with modern styling, but the backend contract call logic is not yet implemented.  
-> Buttons currently show placeholder alerts. See `src/components/DeFiTabs.tsx` for where to add contract logic.
 
 ## 🛠️ Getting Started
 
@@ -45,10 +41,10 @@ A modern DeFi application built on Stellar, featuring a beautiful Blendify-brand
 2. Approve the connection in Freighter (make sure it's set to Testnet)
 3. Your wallet address and network information will be displayed
 
-### DeFi Operations (UI Ready, Backend Pending)
-- **Swap:** Select tokens and amounts (functionality coming soon)
-- **Borrow:** Choose assets to borrow against collateral (functionality coming soon)
-- **Stake:** Stake BLND tokens for rewards (functionality coming soon)
+### DeFi Operations (Live)
+- **Swap:** Select tokens and amounts, execute real swaps via Soroban contract
+- **Borrow:** Choose assets to borrow against collateral, submit real borrow transactions
+- **Stake:** Stake BLND tokens for rewards, with live contract calls
 
 ### Portfolio Features
 - **Health Factor:** Real-time monitoring with color-coded status
@@ -70,12 +66,12 @@ A modern DeFi application built on Stellar, featuring a beautiful Blendify-brand
 - **Styling:** Tailwind CSS, custom CSS with CSS variables
 - **UI Components:** Shadcn/ui with custom Blendify styling
 - **Wallet Integration:** @stellar/freighter-api (official)
-- **Blockchain:** @stellar/stellar-sdk, soroban-client
+- **Blockchain:** stellar-sdk (latest), soroban-client
 
 ### Key Components
 - `App.tsx`: Main application with modern layout and features grid
 - `WalletConnect.tsx`: Freighter wallet connection with status indicators
-- `DeFiTabs.tsx`: Swap, Borrow, and Stake interface (UI complete)
+- `DeFiTabs.tsx`: Swap, Borrow, and Stake interface (live contract calls)
 - `Dashboard.tsx`: Portfolio analytics and position tracking
 - `index.css`: Blendify color scheme and custom component styles
 
@@ -90,9 +86,9 @@ src/
 │   ├── TokenSelector.tsx
 │   └── TxButton.tsx
 ├── hooks/              # Custom React hooks
-│   └── useFreighter.tsx
+│   └── useBalances.ts
 ├── lib/                # Utility functions
-│   ├── blendClient.ts  # Contract configuration
+│   ├── blendClient.ts  # Contract integration and logic
 │   └── utils.ts
 ├── App.tsx             # Main app entry
 ├── index.css           # Tailwind and Blendify styles
@@ -119,6 +115,7 @@ The smart contract is deployed at `CA26SDP73CGMH5E5HHTHT3DN4YPH4DJUNRBRHPB4ZJTF2
 - Asset borrowing with health factor monitoring
 - BLND token staking with rewards
 - Liquidation protection features
+- 11 supported assets with correct testnet addresses
 
 ## 🚧 Current Status
 
@@ -128,19 +125,18 @@ The smart contract is deployed at `CA26SDP73CGMH5E5HHTHT3DN4YPH4DJUNRBRHPB4ZJTF2
 - Responsive design and improved typography
 - Portfolio dashboard with health factor monitoring
 - DeFi operations UI (Swap, Borrow, Stake tabs)
+- Real contract calls for swap, borrow, and stake (no more simulation)
+- All references to @stellar/stellar-sdk removed; only 'stellar-sdk' is used
 
 ### 🔄 In Progress
-- Smart contract integration for DeFi operations
 - Real-time balance updates
-- Transaction signing and submission
-- Error handling and user feedback
+- Transaction error handling and user feedback
+- Additional DeFi analytics and features
 
 ### 📝 TODO
-- Implement swap functionality
-- Add borrow/repay logic
-- Complete staking implementation
 - Add real-time price feeds
 - Implement portfolio analytics
+- Expand asset support and contract features
 
 ## 🤝 Contributing
 
@@ -151,7 +147,7 @@ The smart contract is deployed at `CA26SDP73CGMH5E5HHTHT3DN4YPH4DJUNRBRHPB4ZJTF2
 5. Submit a pull request
 
 ### Areas Needing Work
-- Contract integration in `src/components/DeFiTabs.tsx`
+- Additional contract features and analytics
 - Balance fetching and updates
 - Transaction handling and error management
 - Real-time data synchronization
