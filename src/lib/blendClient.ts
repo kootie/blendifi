@@ -1,7 +1,8 @@
 // Simple contract integration using Freighter API
 // This provides the interface for swap, borrow, and stake operations
 
-import Server from '@stellar/stellar-sdk';
+import Server from 'stellar-sdk';
+import { Keypair, Asset } from 'stellar-sdk';
 import { BASE_FEE, Networks, xdr } from '@stellar/stellar-sdk';
 import { Server as SorobanServer, TransactionBuilder as SorobanTransactionBuilder, nativeToScVal, Contract } from 'soroban-client';
 import { getNetworkDetails } from '@stellar/freighter-api';

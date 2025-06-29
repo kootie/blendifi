@@ -1051,5 +1051,5 @@ impl StellarDeFiHub {
 
     fn save_user_position(env: &Env, user: &Address, position: &UserPosition) {
         env.storage().persistent().set(&(symbol_short!("pos"), user.clone()), position);
-    }
+    }
 }
