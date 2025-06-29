@@ -1,7 +1,17 @@
 // Simple contract integration using Freighter API
 // This provides the interface for swap, borrow, and stake operations
 
+import Server from '@stellar/stellar-sdk/lib/server';
+import { BASE_FEE, Networks } from '@stellar/stellar-sdk';
+import { Server as SorobanServer, TransactionBuilder as SorobanTransactionBuilder, nativeToScVal, Contract } from 'soroban-client';
+import { getNetworkDetails } from '@stellar/freighter-api';
+
 const BLEND_CONTRACT_ID = 'CA26SDP73CGMH5E5HHTHT3DN4YPH4DJUNRBRHPB4ZJTF2DQXDMCXXTZH';
+const SOROBAN_RPC_URL = 'https://soroban-testnet.stellar.org';
+const HORIZON_URL = 'https://horizon-testnet.stellar.org';
+
+const sorobanServer = new SorobanServer(SOROBAN_RPC_URL);
+const horizonServer = new Server(HORIZON_URL);
 
 // Token addresses from the smart contract
 export const TOKEN_ADDRESSES = {
@@ -13,13 +23,6 @@ export const TOKEN_ADDRESSES = {
 };
 
 // Type definitions
-interface ContractCallParams {
-  contractId: string;
-  method: string;
-  args: string[];
-  fee?: string;
-}
-
 interface TransactionResult {
   success: boolean;
   hash?: string;
@@ -51,27 +54,43 @@ export function getTokenDecimals(symbol: string): number {
   }
 }
 
-// Generic contract call function
-async function callContract(params: ContractCallParams): Promise<TransactionResult> {
+function stringToAddress(address: string) {
+  if (address === 'native') {
+    return nativeToScVal('native');
+  }
+  return nativeToScVal(address);
+}
+
+async function buildAndSubmitSorobanTransaction(
+  sourceAccount: string,
+  contractId: string,
+  method: string,
+  args: unknown[],
+  signTransaction: (xdr: string, network: string) => Promise<{ signedTxXdr: string }>
+): Promise<TransactionResult> {
   try {
-    // This would be implemented using Freighter's contract call functionality
-    // For now, we'll simulate the call structure
-    console.log('Contract call:', params);
-    
-    // In a real implementation, this would use Freighter's API
-    // const result = await window.freighterApi.callContract(params);
-    
-    return {
-      success: true,
-      hash: 'simulated_hash_' + Date.now(),
-      result: '0'
-    };
+    const account = await horizonServer.loadAccount(sourceAccount);
+    const networkDetails = await getNetworkDetails();
+    const networkPassphrase = networkDetails.networkPassphrase;
+    const contract = new Contract(contractId);
+    const tx = new SorobanTransactionBuilder(account, {
+      fee: BASE_FEE,
+      networkPassphrase
+    })
+      .addOperation(contract.call(method, ...args))
+      .setTimeout(30)
+      .build();
+
+    // Sign with Freighter
+    const signed = await signTransaction(tx.toXDR(), networkPassphrase);
+    // Submit
+    const response = await sorobanServer.sendTransaction(signed.signedTxXdr);
+    if (response.status === 'PENDING') {
+      return { success: true, hash: response.hash };
+    }
+    return { success: response.status === 'SUCCESS', hash: response.hash };
   } catch (error) {
-    console.error('Contract call failed:', error);
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : 'Unknown error'
-    };
+    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
   }
 }
 
@@ -81,7 +100,8 @@ export async function swapTokens(
   tokenInSymbol: string,
   tokenOutSymbol: string,
   amountIn: string,
-  minAmountOut: string
+  minAmountOut: string,
+  signTransaction: (xdr: string, network: string) => Promise<{ signedTxXdr: string }>
 ): Promise<TransactionResult> {
   try {
     const tokenInAddress = TOKEN_ADDRESSES[tokenInSymbol as keyof typeof TOKEN_ADDRESSES];
@@ -100,20 +120,22 @@ export async function swapTokens(
     // Set deadline to 30 minutes from now
     const deadline = Math.floor(Date.now() / 1000) + 1800;
 
-    const params: ContractCallParams = {
-      contractId: BLEND_CONTRACT_ID,
-      method: 'swap_tokens',
-      args: [
-        userAddress,
-        tokenInAddress,
-        tokenOutAddress,
-        amountInFormatted,
-        minAmountOutFormatted,
-        deadline.toString()
-      ]
-    };
+    const args = [
+      stringToAddress(userAddress),
+      stringToAddress(tokenInAddress),
+      stringToAddress(tokenOutAddress),
+      nativeToScVal(amountInFormatted, { type: 'u128' }),
+      nativeToScVal(minAmountOutFormatted, { type: 'u128' }),
+      nativeToScVal(deadline, { type: 'u64' })
+    ];
 
-    return await callContract(params);
+    return await buildAndSubmitSorobanTransaction(
+      userAddress,
+      BLEND_CONTRACT_ID,
+      'swap_tokens',
+      args,
+      signTransaction
+    );
   } catch (error) {
     console.error('Swap failed:', error);
     return {
@@ -127,7 +149,8 @@ export async function swapTokens(
 export async function borrowFromBlend(
   userAddress: string,
   assetSymbol: string,
-  amount: string
+  amount: string,
+  signTransaction: (xdr: string, network: string) => Promise<{ signedTxXdr: string }>
 ): Promise<TransactionResult> {
   try {
     const assetAddress = TOKEN_ADDRESSES[assetSymbol as keyof typeof TOKEN_ADDRESSES];
@@ -139,17 +162,19 @@ export async function borrowFromBlend(
     const assetDecimals = getTokenDecimals(assetSymbol);
     const amountFormatted = amountToContractFormat(amount, assetDecimals);
 
-    const params: ContractCallParams = {
-      contractId: BLEND_CONTRACT_ID,
-      method: 'borrow_from_blend',
-      args: [
-        userAddress,
-        assetAddress,
-        amountFormatted
-      ]
-    };
+    const args = [
+      stringToAddress(userAddress),
+      stringToAddress(assetAddress),
+      nativeToScVal(amountFormatted, { type: 'u128' })
+    ];
 
-    return await callContract(params);
+    return await buildAndSubmitSorobanTransaction(
+      userAddress,
+      BLEND_CONTRACT_ID,
+      'borrow_from_blend',
+      args,
+      signTransaction
+    );
   } catch (error) {
     console.error('Borrow failed:', error);
     return {
@@ -162,22 +187,25 @@ export async function borrowFromBlend(
 // Stake BLEND tokens
 export async function stakeBlend(
   userAddress: string,
-  amount: string
+  amount: string,
+  signTransaction: (xdr: string, network: string) => Promise<{ signedTxXdr: string }>
 ): Promise<TransactionResult> {
   try {
     const blendDecimals = getTokenDecimals('BLND');
     const amountFormatted = amountToContractFormat(amount, blendDecimals);
 
-    const params: ContractCallParams = {
-      contractId: BLEND_CONTRACT_ID,
-      method: 'stake_blend',
-      args: [
-        userAddress,
-        amountFormatted
-      ]
-    };
+    const args = [
+      stringToAddress(userAddress),
+      nativeToScVal(amountFormatted, { type: 'u128' })
+    ];
 
-    return await callContract(params);
+    return await buildAndSubmitSorobanTransaction(
+      userAddress,
+      BLEND_CONTRACT_ID,
+      'stake_blend',
+      args,
+      signTransaction
+    );
   } catch (error) {
     console.error('Stake failed:', error);
     return {
