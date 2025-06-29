@@ -2,6 +2,9 @@ import React, { useState } from 'react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from './ui/tabs';
 import TokenSelector, { Token } from './TokenSelector';
 import TxButton from './TxButton';
+import { swapTokens, borrowFromBlend, stakeBlend, calculateSwapOutput, TOKEN_ADDRESSES } from '../lib/blendClient';
+import { useFreighter } from '../hooks/useFreighter';
+import { toast } from 'sonner';
 
 const TOKENS: Token[] = [
   { symbol: 'XLM', name: 'Stellar Lumens', address: 'native' },
@@ -12,13 +15,148 @@ const TOKENS: Token[] = [
 ];
 
 const DeFiTabs: React.FC = () => {
+  const { publicKey, connected } = useFreighter();
   const [fromToken, setFromToken] = useState('XLM');
   const [toToken, setToToken] = useState('USDC');
   const [swapAmount, setSwapAmount] = useState('');
+  const [estimatedOutput, setEstimatedOutput] = useState('');
   const [borrowToken, setBorrowToken] = useState('USDC');
   const [borrowAmount, setBorrowAmount] = useState('');
   const [stakeToken, setStakeToken] = useState('BLND');
   const [stakeAmount, setStakeAmount] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Calculate estimated output when swap inputs change
+  React.useEffect(() => {
+    if (swapAmount && fromToken && toToken && fromToken !== toToken) {
+      const output = calculateSwapOutput(fromToken, toToken, swapAmount);
+      setEstimatedOutput(output);
+    } else {
+      setEstimatedOutput('');
+    }
+  }, [swapAmount, fromToken, toToken]);
+
+  const handleSwap = async () => {
+    if (!connected || !publicKey) {
+      toast.error('Please connect your wallet first');
+      return;
+    }
+
+    if (!swapAmount || parseFloat(swapAmount) <= 0) {
+      toast.error('Please enter a valid amount');
+      return;
+    }
+
+    if (fromToken === toToken) {
+      toast.error('Cannot swap the same token');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const minAmountOut = estimatedOutput ? (parseFloat(estimatedOutput) * 0.99).toString() : '0';
+      
+      const result = await swapTokens(
+        publicKey,
+        fromToken,
+        toToken,
+        swapAmount,
+        minAmountOut
+      );
+
+      if (result.success) {
+        toast.success(`Swap successful! Hash: ${result.hash}`);
+        setSwapAmount('');
+        setEstimatedOutput('');
+      } else {
+        toast.error(`Swap failed: ${result.error}`);
+      }
+    } catch (error) {
+      console.error('Swap error:', error);
+      toast.error('Swap failed. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleBorrow = async () => {
+    if (!connected || !publicKey) {
+      toast.error('Please connect your wallet first');
+      return;
+    }
+
+    if (!borrowAmount || parseFloat(borrowAmount) <= 0) {
+      toast.error('Please enter a valid amount');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const result = await borrowFromBlend(
+        publicKey,
+        borrowToken,
+        borrowAmount
+      );
+
+      if (result.success) {
+        toast.success(`Borrow successful! Hash: ${result.hash}`);
+        setBorrowAmount('');
+      } else {
+        toast.error(`Borrow failed: ${result.error}`);
+      }
+    } catch (error) {
+      console.error('Borrow error:', error);
+      toast.error('Borrow failed. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleStake = async () => {
+    if (!connected || !publicKey) {
+      toast.error('Please connect your wallet first');
+      return;
+    }
+
+    if (!stakeAmount || parseFloat(stakeAmount) <= 0) {
+      toast.error('Please enter a valid amount');
+      return;
+    }
+
+    if (stakeToken !== 'BLND') {
+      toast.error('Only BLND tokens can be staked');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const result = await stakeBlend(
+        publicKey,
+        stakeAmount
+      );
+
+      if (result.success) {
+        toast.success(`Stake successful! Hash: ${result.hash}`);
+        setStakeAmount('');
+      } else {
+        toast.error(`Stake failed: ${result.error}`);
+      }
+    } catch (error) {
+      console.error('Stake error:', error);
+      toast.error('Stake failed. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  if (!connected) {
+    return (
+      <div className="blendify-card p-8 text-center">
+        <h3 className="text-xl font-semibold text-foreground mb-4">Connect Your Wallet</h3>
+        <p className="text-muted-foreground">Please connect your Freighter wallet to use DeFi features</p>
+      </div>
+    );
+  }
 
   return (
     <div className="blendify-card p-8">
@@ -77,14 +215,26 @@ const DeFiTabs: React.FC = () => {
               />
             </div>
           </div>
+
+          {estimatedOutput && (
+            <div className="text-center p-4 bg-muted/50 rounded-lg">
+              <p className="text-sm text-muted-foreground">Estimated Output:</p>
+              <p className="text-lg font-semibold text-foreground">{estimatedOutput} {toToken}</p>
+              <p className="text-xs text-muted-foreground mt-1">0.3% protocol fee applied</p>
+            </div>
+          )}
           
           <div className="flex justify-center">
-            <TxButton onClick={async () => alert('Swap logic goes here!')}>
+            <TxButton onClick={handleSwap}>
               <div className="flex items-center gap-2">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
-                </svg>
-                Swap Tokens
+                {isLoading ? (
+                  <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                  </svg>
+                )}
+                {isLoading ? 'Swapping...' : 'Swap Tokens'}
               </div>
             </TxButton>
           </div>
@@ -113,14 +263,23 @@ const DeFiTabs: React.FC = () => {
               />
             </div>
           </div>
+
+          <div className="text-center p-4 bg-muted/50 rounded-lg">
+            <p className="text-sm text-muted-foreground">Health Factor Required: &gt; 1.0</p>
+            <p className="text-xs text-muted-foreground mt-1">Ensure you have sufficient collateral before borrowing</p>
+          </div>
           
           <div className="flex justify-center">
-            <TxButton onClick={async () => alert('Borrow logic goes here!')}>
+            <TxButton onClick={handleBorrow}>
               <div className="flex items-center gap-2">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
-                </svg>
-                Borrow Asset
+                {isLoading ? (
+                  <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                  </svg>
+                )}
+                {isLoading ? 'Borrowing...' : 'Borrow Asset'}
               </div>
             </TxButton>
           </div>
@@ -149,14 +308,23 @@ const DeFiTabs: React.FC = () => {
               />
             </div>
           </div>
+
+          <div className="text-center p-4 bg-muted/50 rounded-lg">
+            <p className="text-sm text-muted-foreground">Staking Rewards: Earn protocol fees and governance rights</p>
+            <p className="text-xs text-muted-foreground mt-1">Rewards are distributed proportionally to stakers</p>
+          </div>
           
           <div className="flex justify-center">
-            <TxButton onClick={async () => alert('Stake logic goes here!')}>
+            <TxButton onClick={handleStake}>
               <div className="flex items-center gap-2">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
-                Stake BLEND
+                {isLoading ? (
+                  <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                )}
+                {isLoading ? 'Staking...' : 'Stake BLEND'}
               </div>
             </TxButton>
           </div>

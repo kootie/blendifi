@@ -1,10 +1,13 @@
 import React from 'react';
 import WalletConnect from './components/WalletConnect';
 import DeFiTabs from './components/DeFiTabs';
+import Dashboard from './components/Dashboard';
 import { FreighterProvider, useFreighter } from './hooks/useFreighter.tsx';
+import { useBalances } from './hooks/useBalances';
 
 const AppContent: React.FC = () => {
   const { publicKey, connected } = useFreighter();
+  const balances = useBalances(publicKey);
   
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/30">
@@ -44,6 +47,11 @@ const AppContent: React.FC = () => {
                   </span>
                 </p>
               </div>
+              
+              {/* Dashboard */}
+              <Dashboard balances={balances} />
+              
+              {/* DeFi Tabs */}
               <DeFiTabs />
             </div>
           )}

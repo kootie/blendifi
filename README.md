@@ -1,234 +1,178 @@
-# Stellar DeFi Hub
+# Blendify: Stellar DeFi Hub
 
-A comprehensive DeFi application built on Stellar that integrates swap functionality, lending/borrowing through Blend pools, and staking rewards. The frontend is built with React, TypeScript, and integrates with the Stellar blockchain using Freighter wallet and Soroban smart contracts.
+A modern DeFi application built on Stellar, featuring a beautiful Blendify-branded UI, wallet connection via Freighter, and Soroban smart contract integration.
 
-## Features
+## 🚀 Features
 
-- **Token Swapping**: Exchange cryptocurrencies using Soroswap integration
-- **Lending & Borrowing**: Supply assets to Blend pools and borrow against collateral
-- **Staking Rewards**: Stake bTokens to earn protocol fees and rewards
-- **Health Factor Monitoring**: Real-time monitoring of borrowing health factors
-- **Multi-Asset Support**: Support for 11 major cryptocurrencies including BLND (Blend token)
-- **Portfolio Management**: Comprehensive portfolio tracking and analytics
-- **Freighter Wallet Integration**: Secure wallet connection and transaction signing
-- **Soroban Contract Calls**: All DeFi actions interact directly with the deployed Soroban contract
-- **Real-Time Price Feeds**: Asset prices fetched from DIA oracle, DEX, and fallback sources
-- **Improved Error Handling**: User-friendly error messages for wallet, contract, and network issues
+- **Modern UI:** Blendify color palette, Inter font, and responsive design
+- **Freighter Wallet Integration:** Secure wallet connection and transaction signing using official @stellar/freighter-api
+- **DeFi Operations UI:** Tabs for Swapping, Borrowing, and Staking with modern styling
+- **Portfolio Dashboard:** Health factor monitoring, rewards tracking, and position management
+- **Multi-Asset Support:** XLM, USDC, BLND, WETH, WBTC with testnet addresses
+- **Advanced Styling:** Custom Blendify components, gradients, and improved typography
 
-## Supported Assets
+> **Note:**  
+> The UI for Swap, Borrow, and Stake is complete with modern styling, but the backend contract call logic is not yet implemented.  
+> Buttons currently show placeholder alerts. See `src/components/DeFiTabs.tsx` for where to add contract logic.
 
-The application supports the following assets on Stellar testnet:
+## 🛠️ Getting Started
 
-- **USDC** (USD Coin) - 85% collateral factor
-- **USDT** (Tether) - 85% collateral factor
-- **XLM** (Stellar) - 70% collateral factor
-- **BTC** (Bitcoin) - 75% collateral factor
-- **ETH** (Ethereum) - 75% collateral factor
-- **AQUA** (AQUA Token) - 60% collateral factor
-- **VELO** (VELO Token) - 60% collateral factor
-- **SHX** (Stronghold Token) - 65% collateral factor
-- **WXT** (Wirex Token) - 60% collateral factor
-- **RIO** (Realio Token) - 60% collateral factor
-- **BLND** (Blend Token) - 65% collateral factor
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/kootie/blendifi.git
+   cd blendifi
+   ```
 
-## Prerequisites
+2. **Install dependencies:**
+   ```bash
+   npm install
+   ```
 
-- Node.js 18+ and npm/yarn
-- Freighter wallet extension installed
-- Stellar testnet account with test XLM
-- Deployed Soroban smart contract on Stellar testnet
+3. **Set your contract address:**
+   - Open `src/lib/blendClient.ts`
+   - Set `BLEND_CONTRACT_ID` to your deployed contract ID (currently set to `CA26SDP73CGMH5E5HHTHT3DN4YPH4DJUNRBRHPB4ZJTF2DQXDMCXXTZH`)
 
-## Installation
+4. **Start the development server:**
+   ```bash
+   npm run dev
+   ```
+   - App runs at [http://localhost:8080](http://localhost:8080)
 
-1. Clone the repository:
-```bash
-git clone <repository-url>
-cd blendifi
-```
-
-2. Install dependencies:
-```bash
-npm install
-```
-
-3. Configure your contract:
-   - Open `src/lib/config.ts`
-   - Replace `YOUR_CONTRACT_ID_HERE` with your deployed contract ID
-   - Ensure all external contract addresses are correct for your network
-
-4. Start the development server:
-```bash
-npm run dev
-```
-   - If port 8080 is in use, the app will start on the next available port (e.g., 8081).
-
-## Smart Contract Setup
-
-Before using the frontend, ensure your smart contract is properly deployed and initialized:
-
-1. **Deploy the contract** to Stellar testnet
-2. **Initialize the contract** with an admin address
-3. **Verify external contracts** are accessible:
-   - Blend Pool Factory
-   - Soroswap Router
-   - DIA Oracle
-
-## Usage
+## 💡 Usage
 
 ### Connecting Wallet
+1. Click "Connect Wallet" button
+2. Approve the connection in Freighter (make sure it's set to Testnet)
+3. Your wallet address and network information will be displayed
 
-1. Click "Connect Freighter Wallet" button
-2. Approve the connection in Freighter
-3. Your wallet address will be displayed and portfolio data will load
+### DeFi Operations (UI Ready, Backend Pending)
+- **Swap:** Select tokens and amounts (functionality coming soon)
+- **Borrow:** Choose assets to borrow against collateral (functionality coming soon)
+- **Stake:** Stake BLND tokens for rewards (functionality coming soon)
 
-### Swapping Tokens
+### Portfolio Features
+- **Health Factor:** Real-time monitoring with color-coded status
+- **Balances:** View your token balances in a clean, organized layout
+- **Supplied/Borrowed Assets:** Track your DeFi positions
 
-1. Select the "Swap" tab
-2. Choose the token you want to swap from and to
-3. Enter the amount
-4. Click "Swap Tokens"
-5. Approve the transaction in Freighter
+## 🎨 UI/UX Highlights
 
-### Supplying Assets
+- **Blendify Brand Colors:** Blue (#0066ff), Teal (#00b3b3), Purple (#6366f1)
+- **Modern Typography:** Inter font family for improved readability
+- **Responsive Design:** Works seamlessly on desktop and mobile
+- **Custom Components:** Blendify-specific buttons, cards, and form elements
+- **Smooth Animations:** Hover effects and transitions for better user experience
 
-1. Select the "Supply" tab
-2. Choose the asset you want to supply
-3. Enter the amount
-4. Click "Supply to Blend"
-5. Approve the transaction in Freighter
+## 🧑‍💻 Development
 
-### Borrowing Assets
-
-1. Select the "Borrow" tab
-2. Choose the asset you want to borrow
-3. Enter the amount
-4. Ensure your health factor is above 120%
-5. Click "Borrow from Blend"
-6. Approve the transaction in Freighter
-
-### Staking bTokens
-
-1. Select the "Stake" tab
-2. Choose the bToken you want to stake
-3. Enter the amount
-4. Click "Stake bTokens"
-5. Approve the transaction in Freighter
-
-## Portfolio Features
-
-The application provides comprehensive portfolio management:
-
-- **Health Factor Monitoring**: Real-time calculation and display of borrowing health
-- **Asset Positions**: Detailed view of supplied and borrowed assets
-- **Portfolio Value**: Total collateral, borrowed, and net position values
-- **Price Information**: Real-time asset prices from DIA oracle, DEX, and fallback sources
-
-## Technical Architecture
-
-### Frontend Stack
-- **React 18** with TypeScript
-- **Vite** for build tooling
-- **Tailwind CSS** for styling
-- **Shadcn/ui** for UI components
-- **React Router** for navigation
-- **React Query** for data fetching
-
-### Blockchain Integration
-- **@stellar/stellar-sdk** (latest) for Stellar operations
-- **@stellar/freighter-api** for wallet integration
-- **soroban-client** (latest) for smart contract interactions
+### Tech Stack
+- **Frontend:** React 18, TypeScript, Vite
+- **Styling:** Tailwind CSS, custom CSS with CSS variables
+- **UI Components:** Shadcn/ui with custom Blendify styling
+- **Wallet Integration:** @stellar/freighter-api (official)
+- **Blockchain:** @stellar/stellar-sdk, soroban-client
 
 ### Key Components
-- `CryptoExchange`: Main DeFi interface with tabs for different operations
-- `UserPortfolio`: Detailed portfolio analytics and position tracking
-- `CryptoSelector`: Asset selection dropdown with collateral factors
-- `stellar.ts`: Core blockchain integration and contract calls
-
-## Configuration
-
-### Environment Variables
-Create a `.env` file in the root directory:
-
-```env
-VITE_CONTRACT_ID=your_contract_id_here
-VITE_NETWORK=testnet
-```
-
-### Contract Configuration
-Update `src/lib/config.ts` with your specific contract addresses and settings.
-
-## Development
-
-### Available Scripts
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run preview` - Preview production build
-- `npm run lint` - Run ESLint
+- `App.tsx`: Main application with modern layout and features grid
+- `WalletConnect.tsx`: Freighter wallet connection with status indicators
+- `DeFiTabs.tsx`: Swap, Borrow, and Stake interface (UI complete)
+- `Dashboard.tsx`: Portfolio analytics and position tracking
+- `index.css`: Blendify color scheme and custom component styles
 
 ### Project Structure
 ```
 src/
 ├── components/          # React components
 │   ├── ui/             # Shadcn/ui components
-│   ├── CryptoExchange.tsx
-│   ├── CryptoSelector.tsx
-│   ├── UserPortfolio.tsx
-│   └── Navbar.tsx
-├── lib/                # Utility functions
-│   ├── stellar.ts      # Blockchain integration
-│   ├── config.ts       # Configuration
-│   └── utils.ts        # General utilities
+│   ├── WalletConnect.tsx
+│   ├── DeFiTabs.tsx
+│   ├── Dashboard.tsx
+│   ├── TokenSelector.tsx
+│   └── TxButton.tsx
 ├── hooks/              # Custom React hooks
-├── pages/              # Page components
+│   └── useFreighter.tsx
+├── lib/                # Utility functions
+│   ├── blendClient.ts  # Contract configuration
+│   └── utils.ts
+├── App.tsx             # Main app entry
+├── index.css           # Tailwind and Blendify styles
 └── main.tsx           # Application entry point
 ```
 
-## Troubleshooting
+## 📦 Available Scripts
 
-### Common Issues
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run preview` - Preview production build
+- `npm run lint` - Run ESLint
 
-1. **Wallet Connection Fails**
-   - Ensure Freighter is installed and unlocked
-   - Check that you're on the correct network (testnet)
-   - Try refreshing the page
+## 🔧 Configuration
 
-2. **Contract Calls Fail**
-   - Verify your contract ID is correct in `config.ts`
-   - Ensure your contract is properly initialized
-   - Check that external contracts are accessible
+### Environment Setup
+- Ensure Freighter wallet is installed and set to Testnet
+- Contract address is configured in `src/lib/blendClient.ts`
+- All styling is handled through Tailwind CSS and custom CSS variables
 
-3. **Health Factor Issues**
-   - Ensure you have sufficient collateral before borrowing
-   - Check that asset prices are available from the oracle
-   - Verify collateral factors are correctly set
+### Smart Contract Integration
+The smart contract is deployed at `CA26SDP73CGMH5E5HHTHT3DN4YPH4DJUNRBRHPB4ZJTF2DQXDMCXXTZH` and supports:
+- Token swapping with fixed exchange rates
+- Asset borrowing with health factor monitoring
+- BLND token staking with rewards
+- Liquidation protection features
 
-4. **Transaction Failures**
-   - Ensure you have sufficient XLM for transaction fees
-   - Check that you have sufficient token balances
-   - Verify transaction parameters are within limits
+## 🚧 Current Status
 
-## Contributing
+### ✅ Completed
+- Modern UI with Blendify branding
+- Freighter wallet integration using official API
+- Responsive design and improved typography
+- Portfolio dashboard with health factor monitoring
+- DeFi operations UI (Swap, Borrow, Stake tabs)
+
+### 🔄 In Progress
+- Smart contract integration for DeFi operations
+- Real-time balance updates
+- Transaction signing and submission
+- Error handling and user feedback
+
+### 📝 TODO
+- Implement swap functionality
+- Add borrow/repay logic
+- Complete staking implementation
+- Add real-time price feeds
+- Implement portfolio analytics
+
+## 🤝 Contributing
 
 1. Fork the repository
 2. Create a feature branch
 3. Make your changes
-4. Add tests if applicable
+4. Test the UI and functionality
 5. Submit a pull request
 
-## License
+### Areas Needing Work
+- Contract integration in `src/components/DeFiTabs.tsx`
+- Balance fetching and updates
+- Transaction handling and error management
+- Real-time data synchronization
+
+## 📄 License
 
 This project is licensed under the MIT License.
 
-## Support
+## 🔗 Links
+
+- **Repository:** [https://github.com/kootie/blendifi.git](https://github.com/kootie/blendifi.git)
+- **Live Demo:** [blendifi.vercel.app](https://blendifi.vercel.app)
+- **Smart Contract:** Deployed on Stellar Testnet
+
+## 🆘 Support
 
 For support and questions:
 - Check the troubleshooting section
 - Review the smart contract documentation
 - Open an issue on GitHub
 
-## Security
+---
 
-- Never share your private keys
-- Always verify contract addresses before transactions
-- Use testnet for development and testing
-- Review smart contract code before deployment
+**Built with ❤️ for the Stellar ecosystem**
