@@ -86,7 +86,6 @@
     "vite": "^5.4.19"
   },
   "resolutions": {
-    "@stellar/stellar-sdk": "13.3.0",
     "stellar-base": "10.0.0"
   }
 }

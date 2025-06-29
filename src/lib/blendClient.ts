@@ -1,11 +1,11 @@
 // Simple contract integration using Freighter API
 // This provides the interface for swap, borrow, and stake operations
 
-import Server from 'stellar-sdk';
-import { Keypair, Asset } from 'stellar-sdk';
-import { BASE_FEE, Networks, xdr } from '@stellar/stellar-sdk';
+import StellarSdk from 'stellar-sdk';
 import { Server as SorobanServer, TransactionBuilder as SorobanTransactionBuilder, nativeToScVal, Contract } from 'soroban-client';
 import { getNetworkDetails } from '@stellar/freighter-api';
+const { Server, BASE_FEE, Networks } = StellarSdk;
+const xdr = StellarSdk.xdr;
 
 const BLEND_CONTRACT_ID = 'CA26SDP73CGMH5E5HHTHT3DN4YPH4DJUNRBRHPB4ZJTF2DQXDMCXXTZH';
 const SOROBAN_RPC_URL = 'https://soroban-testnet.stellar.org';
@@ -66,7 +66,7 @@ async function buildAndSubmitSorobanTransaction(
   sourceAccount: string,
   contractId: string,
   method: string,
-  args: xdr.ScVal[],
+  args: any[],
   signTransaction: (xdr: string, network: string) => Promise<{ signedTxXdr: string }>
 ): Promise<TransactionResult> {
   try {
