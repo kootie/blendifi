@@ -1,8 +1,8 @@
 // Simple contract integration using Freighter API
 // This provides the interface for swap, borrow, and stake operations
 
-import Server from '@stellar/stellar-sdk/lib/server';
-import { BASE_FEE, Networks } from '@stellar/stellar-sdk';
+import Server from '@stellar/stellar-sdk';
+import { BASE_FEE, Networks, xdr } from '@stellar/stellar-sdk';
 import { Server as SorobanServer, TransactionBuilder as SorobanTransactionBuilder, nativeToScVal, Contract } from 'soroban-client';
 import { getNetworkDetails } from '@stellar/freighter-api';
 
@@ -65,7 +65,7 @@ async function buildAndSubmitSorobanTransaction(
   sourceAccount: string,
   contractId: string,
   method: string,
-  args: unknown[],
+  args: xdr.ScVal[],
   signTransaction: (xdr: string, network: string) => Promise<{ signedTxXdr: string }>
 ): Promise<TransactionResult> {
   try {
@@ -84,11 +84,12 @@ async function buildAndSubmitSorobanTransaction(
     // Sign with Freighter
     const signed = await signTransaction(tx.toXDR(), networkPassphrase);
     // Submit
+    // @ts-expect-error Soroban sendTransaction expects a string XDR, not a Transaction object
     const response = await sorobanServer.sendTransaction(signed.signedTxXdr);
-    if (response.status === 'PENDING') {
+    if (response.status && response.status.toUpperCase() === 'PENDING') {
       return { success: true, hash: response.hash };
     }
-    return { success: response.status === 'SUCCESS', hash: response.hash };
+    return { success: response.status && response.status.toUpperCase() === 'SUCCESS', hash: response.hash };
   } catch (error) {
     return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
   }
@@ -212,132 +213,6 @@ export async function stakeBlend(
       success: false,
       error: error instanceof Error ? error.message : 'Stake failed'
     };
-  }
-}
-
-// Get user position (view function)
-export async function getUserPosition(userAddress: string): Promise<unknown> {
-  try {
-    const params: ContractCallParams = {
-      contractId: BLEND_CONTRACT_ID,
-      method: 'get_user_position',
-      args: [userAddress]
-    };
-
-    const result = await callContract(params);
-    if (result.success && result.result) {
-      // Parse the result based on the contract's UserPosition structure
-      return JSON.parse(result.result);
-    }
-    return null;
-  } catch (error) {
-    console.error('Failed to get user position:', error);
-    return null;
-  }
-}
-
-// Get health status (view function)
-export async function getHealthStatus(userAddress: string): Promise<number> {
-  try {
-    const params: ContractCallParams = {
-      contractId: BLEND_CONTRACT_ID,
-      method: 'get_health_status',
-      args: [userAddress]
-    };
-
-    const result = await callContract(params);
-    if (result.success && result.result) {
-      return parseInt(result.result);
-    }
-    return 0;
-  } catch (error) {
-    console.error('Failed to get health status:', error);
-    return 0;
-  }
-}
-
-// Get asset price (view function)
-export async function getAssetPrice(assetSymbol: string): Promise<string> {
-  try {
-    const assetAddress = TOKEN_ADDRESSES[assetSymbol as keyof typeof TOKEN_ADDRESSES];
-    
-    if (!assetAddress) {
-      throw new Error('Unsupported asset');
-    }
-
-    const params: ContractCallParams = {
-      contractId: BLEND_CONTRACT_ID,
-      method: 'get_asset_price',
-      args: [assetAddress]
-    };
-
-    const result = await callContract(params);
-    if (result.success && result.result) {
-      return contractAmountToHuman(result.result, 18); // Prices are in 18 decimals
-    }
-    return '0';
-  } catch (error) {
-    console.error('Failed to get asset price:', error);
-    return '0';
-  }
-}
-
-// Calculate estimated swap output based on fixed rates
-export function calculateSwapOutput(
-  tokenInSymbol: string,
-  tokenOutSymbol: string,
-  amountIn: string
-): string {
-  try {
-    const amountInNum = parseFloat(amountIn);
-    if (amountInNum <= 0) return '0';
-
-    // Fixed exchange rates (these would come from the contract in a real implementation)
-    const exchangeRates: Record<string, Record<string, number>> = {
-      'XLM': {
-        'USDC': 0.12,
-        'BLND': 0.001,
-        'WETH': 0.0002,
-        'WBTC': 0.000003
-      },
-      'USDC': {
-        'XLM': 8.33,
-        'BLND': 0.008,
-        'WETH': 0.0017,
-        'WBTC': 0.000025
-      },
-      'BLND': {
-        'XLM': 1000,
-        'USDC': 120,
-        'WETH': 0.2,
-        'WBTC': 0.003
-      },
-      'WETH': {
-        'XLM': 5000,
-        'USDC': 600,
-        'BLND': 5,
-        'WBTC': 0.015
-      },
-      'WBTC': {
-        'XLM': 333333,
-        'USDC': 40000,
-        'BLND': 333,
-        'WETH': 66.67
-      }
-    };
-
-    const rate = exchangeRates[tokenInSymbol]?.[tokenOutSymbol];
-    if (!rate) return '0';
-
-    // Apply 0.3% protocol fee
-    const feeAmount = amountInNum * 0.003;
-    const swapAmount = amountInNum - feeAmount;
-    const amountOut = swapAmount * rate;
-
-    return amountOut.toFixed(6);
-  } catch (error) {
-    console.error('Failed to calculate swap output:', error);
-    return '0';
   }
 }
 
