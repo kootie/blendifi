@@ -1,38 +1,74 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --background: 186 100% 89%; /* #c7fcff */
-    --foreground: 222 54% 14%;  /* #0f1a36 */
+    /* Blendify Brand Colors */
+    --background: 210 40% 98%; /* Light blue-gray background */
+    --foreground: 222 84% 5%;  /* Deep navy text */
 
-    --card: 186 100% 89%;
-    --card-foreground: 222 54% 14%;
+    --card: 0 0% 100%; /* Pure white cards */
+    --card-foreground: 222 84% 5%;
 
-    --popover: 186 100% 89%;
-    --popover-foreground: 222 54% 14%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 84% 5%;
 
-    --primary: 222 54% 14%;    /* #0f1a36 */
-    --primary-foreground: 186 100% 89%; /* #c7fcff */
+    /* Primary Blendify Blue */
+    --primary: 210 100% 50%;    /* #0066ff */
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 186 100% 89%;
-    --secondary-foreground: 222 54% 14%;
+    /* Secondary Blendify Teal */
+    --secondary: 180 100% 40%;  /* #00b3b3 */
+    --secondary-foreground: 0 0% 100%;
 
-    --muted: 186 100% 95%;
-    --muted-foreground: 222 54% 24%;
+    --muted: 210 20% 96%;
+    --muted-foreground: 222 47% 11%;
 
-    --accent: 186 100% 80%;
-    --accent-foreground: 222 54% 14%;
+    /* Accent Blendify Purple */
+    --accent: 250 95% 60%;      /* #6366f1 */
+    --accent-foreground: 0 0% 100%;
 
-    --destructive: 3 65% 55%;
-    --destructive-foreground: 186 100% 89%;
+    --destructive: 0 84% 60%;   /* #dc2626 */
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 186 100% 80%;
-    --input: 186 100% 80%;
-    --ring: 222 54% 14%;
+    --border: 214 32% 91%;      /* #e2e8f0 */
+    --input: 214 32% 91%;
+    --ring: 210 100% 50%;
 
     --radius: 0.75rem;
+  }
+
+  .dark {
+    --background: 222 84% 5%;   /* Dark navy background */
+    --foreground: 210 40% 98%;  /* Light text */
+
+    --card: 222 84% 8%;         /* Slightly lighter navy cards */
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222 84% 8%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 210 100% 60%;    /* Brighter blue for dark mode */
+    --primary-foreground: 222 84% 5%;
+
+    --secondary: 180 100% 50%;  /* Brighter teal for dark mode */
+    --secondary-foreground: 222 84% 5%;
+
+    --muted: 222 84% 12%;
+    --muted-foreground: 210 20% 80%;
+
+    --accent: 250 95% 70%;      /* Brighter purple for dark mode */
+    --accent-foreground: 222 84% 5%;
+
+    --destructive: 0 84% 70%;
+    --destructive-foreground: 222 84% 5%;
+
+    --border: 222 84% 15%;
+    --input: 222 84% 15%;
+    --ring: 210 100% 60%;
   }
 }
 
@@ -40,7 +76,93 @@
   * {
     @apply border-border;
   }
+  
+  html {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    scroll-behavior: smooth;
+  }
+  
   body {
     @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+    line-height: 1.6;
+  }
+
+  /* Improved typography */
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold tracking-tight;
+    line-height: 1.2;
+  }
+
+  h1 {
+    @apply text-4xl md:text-5xl lg:text-6xl;
+  }
+
+  h2 {
+    @apply text-3xl md:text-4xl;
+  }
+
+  h3 {
+    @apply text-2xl md:text-3xl;
+  }
+
+  h4 {
+    @apply text-xl md:text-2xl;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-muted;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-border rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-muted-foreground/50;
+  }
+}
+
+@layer components {
+  /* Blendify-specific components */
+  .blendify-gradient {
+    background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--secondary)) 100%);
+  }
+
+  .blendify-card {
+    @apply bg-card border border-border rounded-xl shadow-sm hover:shadow-md transition-all duration-200;
+  }
+
+  .blendify-button {
+    @apply px-6 py-3 rounded-lg font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2;
+  }
+
+  .blendify-button-primary {
+    @apply blendify-button bg-primary text-primary-foreground hover:bg-primary/90 focus:ring-primary;
+  }
+
+  .blendify-button-secondary {
+    @apply blendify-button bg-secondary text-secondary-foreground hover:bg-secondary/90 focus:ring-secondary;
+  }
+
+  .blendify-input {
+    @apply w-full px-4 py-3 border border-input rounded-lg bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all duration-200;
+  }
+
+  .blendify-tab {
+    @apply px-4 py-2 rounded-lg font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2;
+  }
+
+  .blendify-tab-active {
+    @apply blendify-tab bg-primary text-primary-foreground focus:ring-primary;
+  }
+
+  .blendify-tab-inactive {
+    @apply blendify-tab text-muted-foreground hover:text-foreground hover:bg-muted focus:ring-muted-foreground;
   }
 }

@@ -15,12 +15,12 @@ interface TokenSelectorProps {
 const TokenSelector: React.FC<TokenSelectorProps> = ({ tokens, selected, onChange }) => {
   return (
     <select
-      className="border rounded px-2 py-1"
+      className="blendify-input appearance-none cursor-pointer"
       value={selected}
       onChange={e => onChange(e.target.value)}
     >
       {tokens.map(token => (
-        <option key={token.symbol} value={token.symbol}>
+        <option key={token.symbol} value={token.symbol} className="py-2">
           {token.symbol} - {token.name}
         </option>
       ))}

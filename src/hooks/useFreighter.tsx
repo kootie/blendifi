@@ -1,12 +1,29 @@
-import { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import {
+  isConnected,
+  requestAccess,
+  getNetwork,
+  getNetworkDetails,
+  signTransaction as freighterSignTransaction,
+  WatchWalletChanges
+} from '@stellar/freighter-api';
+
+interface NetworkDetails {
+  network: string;
+  networkUrl: string;
+  networkPassphrase: string;
+  sorobanRpcUrl?: string;
+}
 
 interface FreighterContextType {
   publicKey: string | null;
   network: string | null;
+  networkDetails: NetworkDetails | null;
   error: string | null;
   connected: boolean;
   connect: () => Promise<void>;
-  signTransaction: (xdr: string, network: string) => Promise<any>;
+  signTransaction: (xdr: string, network: string) => Promise<{ signedTxXdr: string; signerAddress: string; }>;
+  disconnect: () => void;
 }
 
 const FreighterContext = createContext<FreighterContextType | undefined>(undefined);
@@ -14,37 +31,124 @@ const FreighterContext = createContext<FreighterContextType | undefined>(undefin
 export function FreighterProvider({ children }: { children: ReactNode }) {
   const [publicKey, setPublicKey] = useState<string | null>(null);
   const [network, setNetwork] = useState<string | null>(null);
+  const [networkDetails, setNetworkDetails] = useState<NetworkDetails | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [connected, setConnected] = useState(false);
+  const [watcher, setWatcher] = useState<WatchWalletChanges | null>(null);
 
   const connect = async () => {
     setError(null);
-    if (!('freighterApi' in window)) {
-      setError('Freighter extension not found.');
-      return;
-    }
     try {
-      const isConnected = await (window as any).freighterApi.isConnected();
-      if (!isConnected) {
-        await (window as any).freighterApi.connect();
+      const connectionStatus = await isConnected();
+      console.log('Freighter connection status:', connectionStatus);
+      
+      if (!connectionStatus.isConnected) {
+        setError('Freighter extension not found. Please install Freighter and refresh the page.');
+        return;
       }
-      const pubKey = await (window as any).freighterApi.getPublicKey();
-      const net = await (window as any).freighterApi.getNetwork();
-      setPublicKey(pubKey);
-      setNetwork(net);
+
+      const accessResult = await requestAccess();
+      console.log('Freighter access result:', accessResult);
+      
+      if (accessResult.error) {
+        setError(`Failed to get access: ${accessResult.error}`);
+        return;
+      }
+
+      const address = accessResult.address;
+      if (!address) {
+        setError('Failed to get public key from Freighter.');
+        return;
+      }
+
+      const networkResult = await getNetwork();
+      console.log('Freighter network result:', networkResult);
+      
+      if (networkResult.error) {
+        setError(`Failed to get network: ${networkResult.error}`);
+        return;
+      }
+
+      const networkDetailsResult = await getNetworkDetails();
+      console.log('Freighter network details result:', networkDetailsResult);
+
+      setPublicKey(address);
+      setNetwork(networkResult.network);
+      setNetworkDetails(networkDetailsResult);
       setConnected(true);
+      setError(null);
+
+      startWatching();
+
     } catch (e) {
-      setError('Failed to connect to Freighter.');
+      console.error('Freighter connection error:', e);
+      setError(`Failed to connect to Freighter: ${e instanceof Error ? e.message : 'Unknown error'}`);
     }
+  };
+
+  const startWatching = () => {
+    if (watcher) {
+      watcher.stop();
+    }
+    
+    const newWatcher = new WatchWalletChanges(3000);
+    newWatcher.watch((results) => {
+      console.log('Freighter wallet change detected:', results);
+      setPublicKey(results.address);
+      setNetwork(results.network);
+    });
+    
+    setWatcher(newWatcher);
+  };
+
+  const disconnect = () => {
+    if (watcher) {
+      watcher.stop();
+      setWatcher(null);
+    }
+    setPublicKey(null);
+    setNetwork(null);
+    setNetworkDetails(null);
+    setConnected(false);
+    setError(null);
   };
 
   const signTransaction = async (xdr: string, network: string) => {
-    if (!('freighterApi' in window)) throw new Error('Freighter not found');
-    return (window as any).freighterApi.signTransaction(xdr, { network });
+    try {
+      const result = await freighterSignTransaction(xdr, { 
+        networkPassphrase: network === 'TESTNET' 
+          ? 'Test SDF Network ; September 2015' 
+          : 'Public Global Stellar Network ; September 2015'
+      });
+      if (result.error) {
+        throw new Error(result.error);
+      }
+      return result;
+    } catch (e) {
+      console.error('Transaction signing error:', e);
+      throw e;
+    }
   };
 
+  useEffect(() => {
+    return () => {
+      if (watcher) {
+        watcher.stop();
+      }
+    };
+  }, [watcher]);
+
   return (
-    <FreighterContext.Provider value={{ publicKey, network, error, connected, connect, signTransaction }}>
+    <FreighterContext.Provider value={{ 
+      publicKey, 
+      network, 
+      networkDetails,
+      error, 
+      connected, 
+      connect, 
+      signTransaction,
+      disconnect 
+    }}>
       {children}
     </FreighterContext.Provider>
   );
