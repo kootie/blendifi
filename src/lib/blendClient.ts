@@ -1,17 +1,16 @@
 // Simple contract integration using Freighter API
 // This provides the interface for swap, borrow, and stake operations
 
-import { BASE_FEE, Networks, Account } from 'stellar-sdk';
+import { BASE_FEE, Networks, Account, Server } from 'stellar-sdk';
 import { Server as SorobanServer, TransactionBuilder as SorobanTransactionBuilder, nativeToScVal, Contract, scValToNative } from 'soroban-client';
 import { getNetworkDetails } from '@stellar/freighter-api';
-import * as StellarSdk from 'stellar-sdk';
 
 const BLEND_CONTRACT_ID = 'CA26SDP73CGMH5E5HHTHT3DN4YPH4DJUNRBRHPB4ZJTF2DQXDMCXXTZH';
 const SOROBAN_RPC_URL = 'https://soroban-testnet.stellar.org';
 const HORIZON_URL = 'https://horizon-testnet.stellar.org';
 
 const sorobanServer = new SorobanServer(SOROBAN_RPC_URL);
-const horizonServer = new StellarSdk.Server(HORIZON_URL);
+const horizonServer = new Server(HORIZON_URL);
 
 // Token addresses from the smart contract
 export const TOKEN_ADDRESSES = {
