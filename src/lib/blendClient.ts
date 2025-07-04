@@ -1,8 +1,8 @@
 // Simple contract integration using Freighter API
 // This provides the interface for swap, borrow, and stake operations
 
-import * as StellarSdk from 'stellar-sdk';
-import { Server as SorobanRpcServer, TransactionBuilder as SorobanTransactionBuilder, nativeToScVal, Contract, scValToNative } from 'soroban-client';
+import { Server, Account, BASE_FEE } from 'stellar-sdk';
+import { Server as SorobanRpcServer, TransactionBuilder as SorobanTransactionBuilder, nativeToScVal, Contract, scValToNative, Address } from 'soroban-client';
 import { getNetworkDetails } from '@stellar/freighter-api';
 
 const BLEND_CONTRACT_ID = 'CA26SDP73CGMH5E5HHTHT3DN4YPH4DJUNRBRHPB4ZJTF2DQXDMCXXTZH';
@@ -10,7 +10,7 @@ const SOROBAN_RPC_URL = 'https://soroban-testnet.stellar.org';
 const HORIZON_URL = 'https://horizon-testnet.stellar.org';
 
 const sorobanServer = new SorobanRpcServer(SOROBAN_RPC_URL);
-const horizonServer = new StellarSdk.Server(HORIZON_URL);
+const horizonServer = new Server(HORIZON_URL);
 
 // Token addresses from the smart contract
 export const TOKEN_ADDRESSES = {
@@ -74,9 +74,9 @@ export function getTokenDecimals(symbol: string): number {
 
 function stringToAddress(address: string) {
   if (address === 'native') {
-    return nativeToScVal(StellarSdk.Address.fromString('CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQAHHAGCN4YU'));
+    return nativeToScVal(Address.fromString('CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQAHHAGCN4YU'));
   }
-  return nativeToScVal(StellarSdk.Address.fromString(address));
+  return nativeToScVal(Address.fromString(address));
 }
 
 async function buildAndSubmitSorobanTransaction(
@@ -92,7 +92,7 @@ async function buildAndSubmitSorobanTransaction(
     const networkPassphrase = networkDetails.networkPassphrase;
     const contract = new Contract(contractId);
     const tx = new SorobanTransactionBuilder(account, {
-      fee: StellarSdk.BASE_FEE,
+      fee: BASE_FEE,
       networkPassphrase
     })
       .addOperation(contract.call(method, ...args))
@@ -124,10 +124,10 @@ async function makeSorobanViewCall(
     const contract = new Contract(contractId);
     
     // Create a dummy account for view calls
-    const dummyAccount = new StellarSdk.Account('GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF', '0');
+    const dummyAccount = new Account('GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF', '0');
     
     const tx = new SorobanTransactionBuilder(dummyAccount, {
-      fee: StellarSdk.BASE_FEE,
+      fee: BASE_FEE,
       networkPassphrase
     })
       .addOperation(contract.call(method, ...args))
