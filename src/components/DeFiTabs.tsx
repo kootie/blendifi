@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from './ui/tabs';
 import TokenSelector, { Token } from './TokenSelector';
 import TxButton from './TxButton';
@@ -27,7 +27,7 @@ const DeFiTabs: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   // Calculate estimated output when swap inputs change
-  React.useEffect(() => {
+  useEffect(() => {
     const calculateOutput = async () => {
       if (swapAmount && fromToken && toToken && fromToken !== toToken) {
         try {
