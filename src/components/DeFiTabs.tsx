@@ -277,7 +277,7 @@ const DeFiTabs: React.FC = () => {
           </div>
 
           <div className="text-center p-4 bg-muted/50 rounded-lg">
-            <p className="text-sm text-muted-foreground">Health Factor Required: > 1.0</p>
+            <p className="text-sm text-muted-foreground">Health Factor Required: {'>'} 1.0</p>
             <p className="text-xs text-muted-foreground mt-1">Ensure you have sufficient collateral before borrowing</p>
           </div>
           
