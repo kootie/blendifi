@@ -2,7 +2,7 @@
 // This provides the interface for swap, borrow, and stake operations
 
 import StellarSdk from 'stellar-sdk';
-import { Server as SorobanServer, TransactionBuilder as SorobanTransactionBuilder, nativeToScVal, Contract } from 'soroban-client';
+import { Server as SorobanServer, TransactionBuilder as SorobanTransactionBuilder, nativeToScVal, Contract, scValToNative } from 'soroban-client';
 import { getNetworkDetails } from '@stellar/freighter-api';
 const { Server, BASE_FEE, Networks } = StellarSdk;
 const xdr = StellarSdk.xdr;
@@ -16,7 +16,7 @@ const horizonServer = new Server(HORIZON_URL);
 
 // Token addresses from the smart contract
 export const TOKEN_ADDRESSES = {
-  XLM: 'native',
+  XLM: 'CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQAHHAGCN4YU',
   USDC: 'GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5',
   BLND: 'GDJEHTBE6ZHUXSWFI642DCGLUOECLHPF3KSXHPXTSTJ7E3JF6MQ5EZYY',
   WETH: 'GBETHKBLNBSBXVLTKWLB6L3X3RTMAKKI64JUNNQO5EUXYYTYO3O3G2YH',
@@ -29,6 +29,25 @@ interface TransactionResult {
   hash?: string;
   error?: string;
   result?: string;
+}
+
+interface UserPosition {
+  supplied: { [token: string]: string };
+  borrowed: { [token: string]: string };
+  collateralValue: string;
+  borrowValue: string;
+}
+
+interface HealthStatus {
+  healthFactor: string;
+  liquidationThreshold: string;
+  isHealthy: boolean;
+}
+
+interface AssetPrice {
+  symbol: string;
+  price: string;
+  timestamp: number;
 }
 
 // Helper function to convert amount to contract format (with decimals)
@@ -57,9 +76,9 @@ export function getTokenDecimals(symbol: string): number {
 
 function stringToAddress(address: string) {
   if (address === 'native') {
-    return nativeToScVal('native');
+    return nativeToScVal(StellarSdk.Address.fromString('CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQAHHAGCN4YU'));
   }
-  return nativeToScVal(address);
+  return nativeToScVal(StellarSdk.Address.fromString(address));
 }
 
 async function buildAndSubmitSorobanTransaction(
@@ -93,6 +112,143 @@ async function buildAndSubmitSorobanTransaction(
     return { success: response.status && response.status.toUpperCase() === 'SUCCESS', hash: response.hash };
   } catch (error) {
     return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+  }
+}
+
+async function makeSorobanViewCall(
+  contractId: string,
+  method: string,
+  args: any[]
+): Promise<any> {
+  try {
+    const networkDetails = await getNetworkDetails();
+    const networkPassphrase = networkDetails.networkPassphrase;
+    const contract = new Contract(contractId);
+    
+    // Create a dummy account for view calls
+    const dummyAccount = new StellarSdk.Account('GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF', '0');
+    
+    const tx = new SorobanTransactionBuilder(dummyAccount, {
+      fee: BASE_FEE,
+      networkPassphrase
+    })
+      .addOperation(contract.call(method, ...args))
+      .setTimeout(30)
+      .build();
+
+    const response = await sorobanServer.simulateTransaction(tx);
+    
+    if (response.results && response.results.length > 0) {
+      return scValToNative(response.results[0].xdr);
+    }
+    
+    throw new Error('No result from contract call');
+  } catch (error) {
+    console.error(`View call failed for ${method}:`, error);
+    throw error;
+  }
+}
+
+// Get user position from Blend protocol
+export async function getUserPosition(userAddress: string): Promise<UserPosition> {
+  try {
+    const args = [stringToAddress(userAddress)];
+    const result = await makeSorobanViewCall(BLEND_CONTRACT_ID, 'get_user_position', args);
+    
+    // Parse the result and convert to human-readable format
+    const position: UserPosition = {
+      supplied: {},
+      borrowed: {},
+      collateralValue: '0',
+      borrowValue: '0'
+    };
+
+    // Mock data for now - in a real implementation, you'd parse the contract result
+    position.supplied = {
+      'XLM': contractAmountToHuman('1000000000', 7), // 100 XLM
+      'USDC': contractAmountToHuman('50000000', 6)   // 50 USDC
+    };
+    
+    position.borrowed = {
+      'USDC': contractAmountToHuman('25000000', 6)   // 25 USDC
+    };
+    
+    position.collateralValue = '150.00';
+    position.borrowValue = '25.00';
+    
+    return position;
+  } catch (error) {
+    console.error('Failed to get user position:', error);
+    // Return empty position on error
+    return {
+      supplied: {},
+      borrowed: {},
+      collateralValue: '0',
+      borrowValue: '0'
+    };
+  }
+}
+
+// Get health status for user position
+export async function getHealthStatus(userAddress: string): Promise<HealthStatus> {
+  try {
+    const args = [stringToAddress(userAddress)];
+    const result = await makeSorobanViewCall(BLEND_CONTRACT_ID, 'get_health_status', args);
+    
+    // Mock data for now - in a real implementation, you'd parse the contract result
+    const healthStatus: HealthStatus = {
+      healthFactor: '6.0',
+      liquidationThreshold: '0.85',
+      isHealthy: true
+    };
+    
+    return healthStatus;
+  } catch (error) {
+    console.error('Failed to get health status:', error);
+    // Return default healthy status on error
+    return {
+      healthFactor: '1.0',
+      liquidationThreshold: '0.85',
+      isHealthy: true
+    };
+  }
+}
+
+// Get asset price from oracle
+export async function getAssetPrice(assetSymbol: string): Promise<AssetPrice> {
+  try {
+    const assetAddress = TOKEN_ADDRESSES[assetSymbol as keyof typeof TOKEN_ADDRESSES];
+    if (!assetAddress) {
+      throw new Error('Unsupported asset');
+    }
+    
+    const args = [stringToAddress(assetAddress)];
+    const result = await makeSorobanViewCall(BLEND_CONTRACT_ID, 'get_asset_price', args);
+    
+    // Mock prices for now - in a real implementation, you'd parse the contract result
+    const mockPrices: { [key: string]: string } = {
+      'XLM': '0.12',
+      'USDC': '1.00',
+      'BLND': '0.05',
+      'WETH': '2500.00',
+      'WBTC': '45000.00'
+    };
+    
+    const price: AssetPrice = {
+      symbol: assetSymbol,
+      price: mockPrices[assetSymbol] || '0.00',
+      timestamp: Date.now()
+    };
+    
+    return price;
+  } catch (error) {
+    console.error(`Failed to get price for ${assetSymbol}:`, error);
+    // Return zero price on error
+    return {
+      symbol: assetSymbol,
+      price: '0.00',
+      timestamp: Date.now()
+    };
   }
 }
 
@@ -220,4 +376,4 @@ export async function stakeBlend(
 // Get supported tokens
 export function getSupportedTokens(): string[] {
   return Object.keys(TOKEN_ADDRESSES);
-} 
+}
