@@ -1,7 +1,7 @@
 // Simple contract integration using Freighter API
 // This provides the interface for swap, borrow, and stake operations
 
-import { BASE_FEE, Networks, Account, Server as HorizonServer } from 'stellar-sdk';
+import * as StellarSdk from 'stellar-sdk';
 import { Server as SorobanRpcServer, TransactionBuilder as SorobanTransactionBuilder, nativeToScVal, Contract, scValToNative } from 'soroban-client';
 import { getNetworkDetails } from '@stellar/freighter-api';
 
@@ -10,7 +10,7 @@ const SOROBAN_RPC_URL = 'https://soroban-testnet.stellar.org';
 const HORIZON_URL = 'https://horizon-testnet.stellar.org';
 
 const sorobanServer = new SorobanRpcServer(SOROBAN_RPC_URL);
-const horizonServer = new HorizonServer(HORIZON_URL);
+const horizonServer = new StellarSdk.Server(HORIZON_URL);
 
 // Token addresses from the smart contract
 export const TOKEN_ADDRESSES = {
@@ -92,7 +92,7 @@ async function buildAndSubmitSorobanTransaction(
     const networkPassphrase = networkDetails.networkPassphrase;
     const contract = new Contract(contractId);
     const tx = new SorobanTransactionBuilder(account, {
-      fee: BASE_FEE,
+      fee: StellarSdk.BASE_FEE,
       networkPassphrase
     })
       .addOperation(contract.call(method, ...args))
@@ -124,10 +124,10 @@ async function makeSorobanViewCall(
     const contract = new Contract(contractId);
     
     // Create a dummy account for view calls
-    const dummyAccount = new Account('GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF', '0');
+    const dummyAccount = new StellarSdk.Account('GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF', '0');
     
     const tx = new SorobanTransactionBuilder(dummyAccount, {
-      fee: BASE_FEE,
+      fee: StellarSdk.BASE_FEE,
       networkPassphrase
     })
       .addOperation(contract.call(method, ...args))
