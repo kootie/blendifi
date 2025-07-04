@@ -149,6 +149,45 @@ async function makeSorobanViewCall(
   }
 }
 
+// Calculate swap output based on mock prices and 0.3% fee
+export async function calculateSwapOutput(
+  tokenInSymbol: string,
+  tokenOutSymbol: string,
+  amountIn: string
+): Promise<string> {
+  try {
+    if (!amountIn || parseFloat(amountIn) <= 0) {
+      return '0';
+    }
+
+    // Get mock prices for both tokens
+    const tokenInPrice = await getAssetPrice(tokenInSymbol);
+    const tokenOutPrice = await getAssetPrice(tokenOutSymbol);
+    
+    const amountInNum = parseFloat(amountIn);
+    const priceIn = parseFloat(tokenInPrice.price);
+    const priceOut = parseFloat(tokenOutPrice.price);
+    
+    if (priceOut === 0) {
+      return '0';
+    }
+    
+    // Calculate value in USD
+    const valueInUSD = amountInNum * priceIn;
+    
+    // Apply 0.3% protocol fee
+    const valueAfterFee = valueInUSD * 0.997;
+    
+    // Convert to output token amount
+    const outputAmount = valueAfterFee / priceOut;
+    
+    return outputAmount.toFixed(6);
+  } catch (error) {
+    console.error('Failed to calculate swap output:', error);
+    return '0';
+  }
+}
+
 // Get user position from Blend protocol
 export async function getUserPosition(userAddress: string): Promise<UserPosition> {
   try {

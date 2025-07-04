@@ -15,7 +15,7 @@ const TOKENS: Token[] = [
 ];
 
 const DeFiTabs: React.FC = () => {
-  const { publicKey, connected } = useFreighter();
+  const { publicKey, connected, signTransaction } = useFreighter();
   const [fromToken, setFromToken] = useState('XLM');
   const [toToken, setToToken] = useState('USDC');
   const [swapAmount, setSwapAmount] = useState('');
@@ -28,12 +28,21 @@ const DeFiTabs: React.FC = () => {
 
   // Calculate estimated output when swap inputs change
   React.useEffect(() => {
-    if (swapAmount && fromToken && toToken && fromToken !== toToken) {
-      const output = calculateSwapOutput(fromToken, toToken, swapAmount);
-      setEstimatedOutput(output);
-    } else {
-      setEstimatedOutput('');
-    }
+    const calculateOutput = async () => {
+      if (swapAmount && fromToken && toToken && fromToken !== toToken) {
+        try {
+          const output = await calculateSwapOutput(fromToken, toToken, swapAmount);
+          setEstimatedOutput(output);
+        } catch (error) {
+          console.error('Failed to calculate swap output:', error);
+          setEstimatedOutput('');
+        }
+      } else {
+        setEstimatedOutput('');
+      }
+    };
+
+    calculateOutput();
   }, [swapAmount, fromToken, toToken]);
 
   const handleSwap = async () => {
@@ -61,7 +70,8 @@ const DeFiTabs: React.FC = () => {
         fromToken,
         toToken,
         swapAmount,
-        minAmountOut
+        minAmountOut,
+        signTransaction
       );
 
       if (result.success) {
@@ -95,7 +105,8 @@ const DeFiTabs: React.FC = () => {
       const result = await borrowFromBlend(
         publicKey,
         borrowToken,
-        borrowAmount
+        borrowAmount,
+        signTransaction
       );
 
       if (result.success) {
@@ -132,7 +143,8 @@ const DeFiTabs: React.FC = () => {
     try {
       const result = await stakeBlend(
         publicKey,
-        stakeAmount
+        stakeAmount,
+        signTransaction
       );
 
       if (result.success) {
@@ -265,7 +277,7 @@ const DeFiTabs: React.FC = () => {
           </div>
 
           <div className="text-center p-4 bg-muted/50 rounded-lg">
-            <p className="text-sm text-muted-foreground">Health Factor Required: &gt; 1.0</p>
+            <p className="text-sm text-muted-foreground">Health Factor Required: > 1.0</p>
             <p className="text-xs text-muted-foreground mt-1">Ensure you have sufficient collateral before borrowing</p>
           </div>
           
@@ -334,4 +346,4 @@ const DeFiTabs: React.FC = () => {
   );
 };
 
-export default DeFiTabs; 
+export default DeFiTabs;
